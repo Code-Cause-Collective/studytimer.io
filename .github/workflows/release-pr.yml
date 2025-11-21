@@ -1,0 +1,45 @@
+name: Release PR
+on:
+  workflow_dispatch:
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Git config
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Bump package version with Changesets
+        run: npm run changeset:version
+      - name: Get npm version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+      - name: Extract release notes
+        id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v2
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        id: cpr
+        with:
+          branch: release
+          delete-branch: true
+          commit-message: 'chore(release): v${{ steps.package-version.outputs.current-version }}'
+          title: '[Release] v${{ steps.package-version.outputs.current-version }}'
+          labels: |
+            release
+            bot
+          signoff: false
+          draft: false
+      - name: Show PR link
+        if: ${{ steps.cpr.outputs.pull-request-url }}
+        run: |
+          echo "Study Timer Release v${{ steps.package-version.outputs.current-version }} pull request - ${{ steps.cpr.outputs.pull-request-url }}"

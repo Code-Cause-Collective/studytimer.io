@@ -1,0 +1,53 @@
+{
+  "name": "studytimer.io",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.3",
+    "yarn": ">=1.22.22",
+    "pnpm": "please use npm or yarn"
+  },
+  "description": "Online pomodoro focus timer.",
+  "scripts": {
+    "dev": "vite --port 3005",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write .",
+    "flf": "npm run format && npm run lint:fix",
+    "test": "vitest --run",
+    "changeset": "npx @changesets/cli",
+    "changeset:version": "npx @changesets/cli version"
+  },
+  "author": "Bryson Ward",
+  "license": "Apache-2.0",
+  "contributors": [
+    "Bryson Ward (https://github.com/brysonbw)"
+  ],
+  "dependencies": {
+    "@lit-labs/router": "^0.1.4",
+    "lit": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/user-event": "^14.6.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^61.2.1",
+    "eslint-plugin-lit": "^2.1.1",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-security": "^3.0.1",
+    "jsdom": "^27.2.0",
+    "prettier": "^3.6.2",
+    "prettier-eslint": "^16.4.2",
+    "terser": "^5.44.1",
+    "vite": "^7.2.2",
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^4.0.10"
+  }
+}
