@@ -44,7 +44,7 @@ export class Header extends LitElement {
 
   #faqLinkClick() {
     this.dispatchEvent(
-      new CustomEvent(APP_EVENT.FAQ_DIALOG, {
+      new CustomEvent(APP_EVENT.FAQ_MODAL, {
         bubbles: true,
         composed: true,
       })
@@ -53,7 +53,7 @@ export class Header extends LitElement {
 
   #settingsLinkClick() {
     this.dispatchEvent(
-      new CustomEvent(APP_EVENT.SETTINGS_DIALOG, {
+      new CustomEvent(APP_EVENT.SETTINGS_MODAL, {
         bubbles: true,
         composed: true,
       })

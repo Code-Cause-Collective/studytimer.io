@@ -4,8 +4,8 @@ import { LitElement, css, html, nothing } from 'lit';
 import { notificationApiService } from './services/notification-api.service.js';
 import { buttonStyles } from './shared/styles/buttonStyles.js';
 import { captionTextStyles } from './shared/styles/captionTextStyles.js';
-import { dialogStyles } from './shared/styles/dialogStyles.js';
 import { linkStyles } from './shared/styles/linkStyles.js';
+import { modalStyles } from './shared/styles/modalStyles.js';
 import { appStore } from './stores/app.js';
 import { DEFAULT_SETTINGS, settingsStore } from './stores/settings.js';
 import {
@@ -35,9 +35,11 @@ const SYSTEM_NOTIFICATIONS_RESOURCE_LINKS = Object.freeze({
 export class App extends LitElement {
   static properties = {
     _hasUserVisited: { type: Boolean, state: true },
-    _showEnableNotificationsDialog: { type: Boolean, state: true },
     _settingsFormValues: { type: Object, state: true },
     _isPageNotFound: { type: Boolean, state: true },
+    _enableNotificationsModalOpen: { type: Boolean, state: true },
+    _faqModalOpen: { type: Boolean, state: true },
+    _settingsModalOpen: { type: Boolean, state: true },
   };
 
   #router = new Router(this, [
@@ -73,6 +75,12 @@ export class App extends LitElement {
     this._settingsFormValues = { ...DEFAULT_SETTINGS };
     /** @type {boolean} */
     this._isPageNotFound = false;
+    /** @type {boolean} */
+    this._enableNotificationsModalOpen = false;
+    /** @type {boolean} */
+    this._faqModalOpen = false;
+    /** @type {boolean} */
+    this._settingsModalOpen = false;
   }
 
   connectedCallback() {
@@ -93,23 +101,8 @@ export class App extends LitElement {
       Notification.permission !== NOTIFICATION_PERMISSION.GRANTED &&
       !this._hasUserVisited
     ) {
-      this.#enableNotificationsDialog?.showModal();
+      this._enableNotificationsModalOpen = true;
     }
-  }
-
-  /** @type {HTMLDialogElement | null} */
-  get #enableNotificationsDialog() {
-    return this.renderRoot?.querySelector('#enableNotificationsDialog') ?? null;
-  }
-
-  /** @type {HTMLDialogElement | null} */
-  get #faqDialogEl() {
-    return this.renderRoot?.querySelector('#faqDialog') ?? null;
-  }
-
-  /** @type {HTMLDialogElement | null} */
-  get #settingsDialogEl() {
-    return this.renderRoot?.querySelector('#settingsDialog') ?? null;
   }
 
   render() {
@@ -119,54 +112,63 @@ export class App extends LitElement {
       <main>
         ${!this._isPageNotFound
           ? html`<app-header
-              @faq-dialog=${this.#onFaqNavLinkClick}
-              @settings-dialog=${this.#onSettingsNavLinkClick}
+              @faq-modal=${this.#onFaqNavLinkClick}
+              @settings-modal=${this.#onSettingsNavLinkClick}
             ></app-header>`
           : nothing}
         <div id="outlet">${this.#router.outlet()}</div>
       </main>
-      ${this.#renderEnableNotificationsDialog()} ${this.#renderFaqDialog()}
       ${!this._hasUserVisited ? this.#renderFirstVisitPopover() : nothing}
-      ${this.#renderSettingsDialog()}`;
+      ${this.#renderEnableNotificationsModal()} ${this.#renderFaqModal()}
+      ${this.#renderSettingsModal()}`;
   }
 
   /** @param {Event} event */
   #onFaqNavLinkClick(event) {
     if (event instanceof CustomEvent) {
-      this.#faqDialogEl?.showModal();
+      this._faqModalOpen = true;
     }
   }
 
   /** @param {Event} event */
   #onSettingsNavLinkClick(event) {
     if (event instanceof CustomEvent) {
-      this.#settingsDialogEl?.showModal();
+      this._settingsModalOpen = true;
     }
   }
 
-  #renderEnableNotificationsDialog() {
+  #renderEnableNotificationsModal() {
     return html`
-      <dialog id="enableNotificationsDialog">
-        <h3>Do you want to enable desktop notifications?</h3>
-        <p class="caption">
-          You can change this preference anytime in Settings. Also, if enabling
-          desktop/browser notifications, be sure your system's notification (<a
-            target="_blank"
-            href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.MAC}
-            >Mac</a
-          >,
-          <a target="_blank" href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.LINUX}
-            >Linux (Ubuntu)</a
-          >, or
-          <a target="_blank" href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.WINDOWS}
-            >Windows</a
-          >) settings are turned on as well.
-        </p>
-        <div class="button-group">
-          <button @click=${this.#onYesClick}>Yes</button>
-          <button @click=${this.#onNoClick}>No</button>
+      <div
+        class="modal"
+        id="enableNotificationsModal"
+        ?hidden=${!this._enableNotificationsModalOpen}
+      >
+        <div class="modal-content">
+          <h3>Do you want to enable desktop notifications?</h3>
+          <p class="caption">
+            You can change this preference anytime in Settings. Also, if
+            enabling desktop/browser notifications, be sure your system's
+            notification (<a
+              target="_blank"
+              href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.MAC}
+              >Mac</a
+            >,
+            <a target="_blank" href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.LINUX}
+              >Linux (Ubuntu)</a
+            >, or
+            <a
+              target="_blank"
+              href=${SYSTEM_NOTIFICATIONS_RESOURCE_LINKS.WINDOWS}
+              >Windows</a
+            >) settings are turned on as well.
+          </p>
+          <div class="button-group">
+            <button @click=${this.#onYesClick}>Yes</button>
+            <button @click=${this.#onNoClick}>No</button>
+          </div>
         </div>
-      </dialog>
+      </div>
     `;
   }
 
@@ -182,43 +184,43 @@ export class App extends LitElement {
       this._settingsFormValues = { ...settingsStore.settings };
     }
 
-    this.#enableNotificationsDialog?.close();
+    this.#closeEnableNotificationsModal();
   }
 
   #onNoClick() {
-    this.#enableNotificationsDialog?.close();
+    this.#closeEnableNotificationsModal();
   }
 
-  #renderFaqDialog() {
-    return html`<dialog id="faqDialog">
-      <h1>Frequently Asked Questions</h1>
-      <div>
-        <details open>
-          <summary>What is Pomodoro Technique?</summary>
-          <p>
-            The pomodoro technique is a time management method developed by
-            Francesco Cirillo in the late 1980s. It uses a kitchen timer to
-            break work into intervals, typically 25 minutes in length, separated
-            by short breaks. Each interval is known as a pomodoro, from the
-            Italian word for tomato.
-          </p>
-          <p>
-            Also, view short
-            <a href=${POMODORO_RESOURCE_LINKS.video} target="_blank"
-              >pomodoro video explantion</a
-            >
-            or visit
-            <a href=${POMODORO_RESOURCE_LINKS.wiki} target="_blank"
-              >pomodoro technique wikipedia page</a
-            >
-            for more information.
-          </p>
-        </details>
+  #renderFaqModal() {
+    return html`<div class="modal" id="faqModal" ?hidden=${!this._faqModalOpen}>
+      <div class="modal-content">
+        <h1>Frequently Asked Questions</h1>
+        <div>
+          <details open>
+            <summary>What is Pomodoro Technique?</summary>
+            <p>
+              The pomodoro technique is a time management method developed by
+              Francesco Cirillo in the late 1980s. It uses a kitchen timer to
+              break work into intervals, typically 25 minutes in length,
+              separated by short breaks. Each interval is known as a pomodoro,
+              from the Italian word for tomato.
+            </p>
+            <p>
+              Also, view short
+              <a href=${POMODORO_RESOURCE_LINKS.video} target="_blank"
+                >pomodoro video explantion</a
+              >
+              or visit
+              <a href=${POMODORO_RESOURCE_LINKS.wiki} target="_blank"
+                >pomodoro technique wikipedia page</a
+              >
+              for more information.
+            </p>
+          </details>
+        </div>
+        <button @click=${this.#closeFaqModal} class="primary">Close</button>
       </div>
-      <button @click=${this.#closeFaqDialog} class="close-dialog primary">
-        Close
-      </button>
-    </dialog>`;
+    </div>`;
   }
 
   #renderFirstVisitPopover() {
@@ -243,7 +245,7 @@ export class App extends LitElement {
     </div>`;
   }
 
-  #renderSettingsDialog() {
+  #renderSettingsModal() {
     const {
       showTimerInTitle,
       showMotivationalQuote,
@@ -257,135 +259,141 @@ export class App extends LitElement {
       longBreakMinutes,
     } = this._settingsFormValues;
 
-    return html`<dialog id="settingsDialog">
-      <h1>Settings</h1>
-      <div>
-        <form id="settingsForm" @submit=${this.#onSubmit}>
-          <h5>Preferences</h5>
+    return html`<div
+      class="modal"
+      id="settingsModal"
+      ?hidden=${!this._settingsModalOpen}
+    >
+      <div class="modal-content">
+        <h1>Settings</h1>
+        <div>
+          <form id="settingsForm" @submit=${this.#onSubmit}>
+            <h5>Preferences</h5>
 
-          <div class="checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                name="showTimerInTitle"
-                .checked=${showTimerInTitle}
-                @change=${this.#updateSettingsField}
-              />
-              Show timer in title
-            </label>
+            <div class="checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="showTimerInTitle"
+                  .checked=${showTimerInTitle}
+                  @change=${this.#updateSettingsField}
+                />
+                Show timer in title
+              </label>
 
-            <label>
-              <input
-                type="checkbox"
-                name="showMotivationalQuote"
-                .checked=${showMotivationalQuote}
-                @change=${this.#updateSettingsField}
-              />
-              Show motivational quote
-            </label>
+              <label>
+                <input
+                  type="checkbox"
+                  name="showMotivationalQuote"
+                  .checked=${showMotivationalQuote}
+                  @change=${this.#updateSettingsField}
+                />
+                Show motivational quote
+              </label>
 
-            <label>
-              <input
-                type="checkbox"
-                name="enableNotifications"
-                .checked=${enableNotifications}
-                @change=${this.#updateSettingsField}
-              />
-              Enable desktop notifications
-            </label>
+              <label>
+                <input
+                  type="checkbox"
+                  name="enableNotifications"
+                  .checked=${enableNotifications}
+                  @change=${this.#updateSettingsField}
+                />
+                Enable desktop notifications
+              </label>
 
-            <label>
-              <input
-                type="checkbox"
-                name="enableExerciseDisplay"
-                .checked=${enableExerciseDisplay}
-                @change=${this.#updateSettingsField}
-              />
-              Enable exercise display after the timer ends
-            </label>
-          </div>
+              <label>
+                <input
+                  type="checkbox"
+                  name="enableExerciseDisplay"
+                  .checked=${enableExerciseDisplay}
+                  @change=${this.#updateSettingsField}
+                />
+                Enable exercise display after the timer ends
+              </label>
+            </div>
 
-          <div class="field-group">
-            <label>
-              Exercises Count:
-              <input
-                type="number"
-                name="exercisesCount"
-                min="1"
-                .value=${String(exercisesCount)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
+            <div class="field-group">
+              <label>
+                Exercises Count:
+                <input
+                  type="number"
+                  name="exercisesCount"
+                  min="1"
+                  .value=${String(exercisesCount)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
 
-            <label>
-              Exercise Reps:
-              <input
-                type="number"
-                name="exerciseReps"
-                min="1"
-                .value=${String(exerciseReps)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
+              <label>
+                Exercise Reps:
+                <input
+                  type="number"
+                  name="exerciseReps"
+                  min="1"
+                  .value=${String(exerciseReps)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
 
-            <label>
-              Exercise Sets:
-              <input
-                type="number"
-                name="exerciseSets"
-                min="1"
-                .value=${String(exerciseSets)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
-          </div>
+              <label>
+                Exercise Sets:
+                <input
+                  type="number"
+                  name="exerciseSets"
+                  min="1"
+                  .value=${String(exerciseSets)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
+            </div>
 
-          <h5>Set Times (Minutes)</h5>
-          <div class="field-group">
-            <label>
-              Pomodoro:
-              <input
-                type="number"
-                name="pomodoroMinutes"
-                min="1"
-                .value=${String(pomodoroMinutes)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
+            <h5>Set Times (Minutes)</h5>
+            <div class="field-group">
+              <label>
+                Pomodoro:
+                <input
+                  type="number"
+                  name="pomodoroMinutes"
+                  min="1"
+                  .value=${String(pomodoroMinutes)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
 
-            <label>
-              Short Break:
-              <input
-                type="number"
-                name="shortBreakMinutes"
-                min="1"
-                .value=${String(shortBreakMinutes)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
+              <label>
+                Short Break:
+                <input
+                  type="number"
+                  name="shortBreakMinutes"
+                  min="1"
+                  .value=${String(shortBreakMinutes)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
 
-            <label>
-              Long Break:
-              <input
-                type="number"
-                name="longBreakMinutes"
-                min="1"
-                .value=${String(longBreakMinutes)}
-                @input=${this.#updateSettingsField}
-              />
-            </label>
-          </div>
+              <label>
+                Long Break:
+                <input
+                  type="number"
+                  name="longBreakMinutes"
+                  min="1"
+                  .value=${String(longBreakMinutes)}
+                  @input=${this.#updateSettingsField}
+                />
+              </label>
+            </div>
 
-          <div class="button-group">
-            <button type="submit">Save</button>
-            <button type="button" @click=${this.#onReset}>Reset</button>
-          </div>
-        </form>
+            <div class="button-group">
+              <button type="submit">Save</button>
+              <button type="button" @click=${this.#onReset}>Reset</button>
+            </div>
+          </form>
+        </div>
+        <button @click=${this.#closeSettingsModal} class="primary">
+          Close
+        </button>
       </div>
-      <button @click=${this.#closeSettingsDialog} class="close-dialog primary">
-        Close
-      </button>
-    </dialog>`;
+    </div>`;
   }
 
   /** @param {Event} event */
@@ -407,7 +415,7 @@ export class App extends LitElement {
       new CustomEvent(SETTINGS_EVENT.SETTINGS_FORM_SUBMIT)
     );
 
-    this.#settingsDialogEl?.close();
+    this.#closeSettingsModal();
   }
 
   #onReset() {
@@ -438,12 +446,16 @@ export class App extends LitElement {
     }
   }
 
-  #closeFaqDialog() {
-    this.#faqDialogEl?.close();
+  #closeEnableNotificationsModal() {
+    this._enableNotificationsModalOpen = false;
   }
 
-  #closeSettingsDialog() {
-    this.#settingsDialogEl?.close();
+  #closeFaqModal() {
+    this._faqModalOpen = false;
+  }
+
+  #closeSettingsModal() {
+    this._settingsModalOpen = false;
   }
 
   #closeFirstVisitPopover() {
@@ -453,7 +465,7 @@ export class App extends LitElement {
   static styles = [
     buttonStyles,
     captionTextStyles,
-    dialogStyles,
+    modalStyles,
     linkStyles,
     css`
       :host {
