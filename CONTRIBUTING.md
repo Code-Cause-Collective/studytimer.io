@@ -94,8 +94,8 @@ touch .env.local
 2. Add the following variables in `.env.local`
 
 ```bash
- VITE_APP_NAME="Study Timer"
- VITE_APP_TITLE="Study Timer | Study With Pomodoro Timer"
+VITE_APP_NAME="Study Timer"
+VITE_APP_TITLE="Study Timer | Online Pomodoro Focus Timer | Code Cause"
 ```
 
 > **Note**: _Non-sensetive_ enviorment variables used client-side **must** have prefix \_VITE\_\_ and added to `vite-end.d.ts` and `.env.local` before usage. For more information see [Vite docs: Env Variables and Modes](https://vite.dev/guide/env-and-mode).
