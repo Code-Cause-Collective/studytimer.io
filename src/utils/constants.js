@@ -1,6 +1,6 @@
 const APP_EVENT = Object.freeze({
-  FAQ_DIALOG: 'faq-dialog',
-  SETTINGS_DIALOG: 'settings-dialog',
+  FAQ_MODAL: 'faq-modal',
+  SETTINGS_MODAL: 'settings-modal',
 });
 
 const CLIENT_ERROR_MESSAGE = Object.freeze({
