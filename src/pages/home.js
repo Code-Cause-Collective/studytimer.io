@@ -186,7 +186,7 @@ export class HomePage extends LitElement {
     );
   }
 
-  /** @returns {Element[]} */
+  /** @returns {HTMLButtonElement[]} */
   get #pomodoroModeButtonEls() {
     return Array.from(
       this.renderRoot?.querySelectorAll('button[data-mode]') ?? []
@@ -384,28 +384,56 @@ export class HomePage extends LitElement {
 
   /** @param {KeyboardEvent} event */
   #handleShortcut = (event) => {
-    const key = event.key.toLowerCase();
+    // ALT + key shortcuts for modes
+    if (event.altKey) {
+      let targetButton;
+      switch (event.key.toLowerCase()) {
+        case 'p':
+          // Find the Pomodoro mode button
+          targetButton = this.#pomodoroModeButtonEls.find(
+            (b) => b.dataset.mode === POMODORO_MODE.POMODORO
+          );
+          break;
+        case 's':
+          // Short Break mode button
+          targetButton = this.#pomodoroModeButtonEls.find(
+            (b) => b.dataset.mode === POMODORO_MODE.SHORT_BREAK
+          );
+          break;
+        case 'l':
+          // Long Break mode button
+          targetButton = this.#pomodoroModeButtonEls.find(
+            (b) => b.dataset.mode === POMODORO_MODE.LONG_BREAK
+          );
+          break;
+        case 'r':
+          // Trigger reset action
+          this.#triggerTimerAction(POMODORO_TIMER_ACTION.RESET);
+          event.preventDefault();
+          return;
+        default:
+          return;
+      }
 
-    /** @type {"start"|"pause"|"reset"|null} */
-    let action = null;
+      // If a button was found, simulate the click and change the mode
+      if (targetButton) {
+        const simulatedEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        });
 
-    switch (key) {
-      case 's':
-        action = 'start';
-        break;
-      case 'p':
-        action = 'pause';
-        break;
-      case 'r':
-        action = 'reset';
-        break;
-      case ' ':
-        action = this.#isRunning ? 'pause' : 'start';
+        targetButton.dispatchEvent(simulatedEvent);
+      }
     }
 
-    if (action) {
+    // SPACE key to toggle start/pause
+    if (event.code === 'Space') {
+      this.#triggerTimerAction(
+        this.#isRunning
+          ? POMODORO_TIMER_ACTION.PAUSE
+          : POMODORO_TIMER_ACTION.START
+      );
       event.preventDefault();
-      this.#triggerTimerAction(action);
     }
   };
 
