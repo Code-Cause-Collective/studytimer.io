@@ -168,6 +168,7 @@ export class HomePage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    window.addEventListener('keydown', this.#handleShortcut);
     this._settings = { ...settingsStore.settings };
     this.#reset();
     settingsStore.addEventListener(
@@ -177,6 +178,7 @@ export class HomePage extends LitElement {
   }
 
   disconnectedCallback() {
+    window.removeEventListener('keydown', this.#handleShortcut);
     super.disconnectedCallback();
     settingsStore.removeEventListener(
       SETTINGS_EVENT.SETTINGS_FORM_SUBMIT,
@@ -378,6 +380,62 @@ export class HomePage extends LitElement {
       this.#pomodoroModes[this._selectedPomodoroMode] * 60;
     this.#remainingTimeSeconds = this.#totalTimeSeconds;
     this.#updatePomodoroTimer();
+  }
+
+  /** @param {KeyboardEvent} event */
+  #handleShortcut = (event) => {
+    const key = event.key.toLowerCase();
+
+    /** @type {"start"|"pause"|"reset"|null} */
+    let action = null;
+
+    switch (key) {
+      case 's':
+        action = 'start';
+        break;
+      case 'p':
+        action = 'pause';
+        break;
+      case 'r':
+        action = 'reset';
+        break;
+      case ' ':
+        action = this.#isRunning ? 'pause' : 'start';
+    }
+
+    if (action) {
+      event.preventDefault();
+      this.#triggerTimerAction(action);
+    }
+  };
+
+  /** @param {'start' | 'pause' | 'reset'} action*/
+  #triggerTimerAction(action) {
+    switch (action) {
+      case POMODORO_TIMER_ACTION.START: {
+        const timerComplete = this._minutes === 0 && this._seconds === 0;
+
+        if (!this.#isRunning && !timerComplete) {
+          this.#start();
+          this.#dismissExercises();
+        }
+        break;
+      }
+
+      case POMODORO_TIMER_ACTION.PAUSE: {
+        this.#pause();
+        break;
+      }
+
+      case POMODORO_TIMER_ACTION.RESET: {
+        this.#reset();
+        this.#dismissExercises();
+        break;
+      }
+
+      default:
+        console.warn('Unknown timer action:', action);
+    }
   }
 
   #complete() {
