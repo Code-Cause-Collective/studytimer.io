@@ -10,6 +10,7 @@ body:
         Please provide as much information as you can in the form below.
   - type: checkboxes
     attributes:
+      label: Type of change
       options:
         - label: This is not a substantial change
           required: true
