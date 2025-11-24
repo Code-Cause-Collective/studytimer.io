@@ -264,7 +264,7 @@ Before you submit your Pull Request (PR) consider the following:
    git push -u origin my-fix-branch-issue-id
    ```
 
-9. In GitHub, send a pull request to `Study Timer:main`.
+9. In GitHub, send a pull request to `studytimer.io:main`.
 
 ### Reviewing a Pull Request
 
