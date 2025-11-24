@@ -31,20 +31,13 @@ We welcome and appreciate all contributions from the community. By contributing 
 
 Before creating a bug report please check to see if it has already been reported. If the issue is closed, please open a new issue and link it to the original issue.
 
-When creating a bug report, explain the problem and include as much additional information as necessary to help maintainers to reproduce it. Ideally, provide an example project which highlights the problem.
-
-- **Use a clear and descriptive title** for the issue to identify the problem
-- **Describe your project setup**. The easier it is for maintainers to reproduce your problem, the more likely it is to be quickly fixed.
-- **Explain what you expected to see instead and why**
+When creating a bug report, please fill out the template provided.
 
 ### Feature Request
 
 Before creating a feature request, please check to see if it has already been requested.
 
-When creating an enhancement request, explain your use case and ultimate goal. This will make it possible for contributors to suggest existing alternatives which may already meet your requirements.
-
-- **Use a clear and descriptive title** for the issue to identify the suggestion.
-- **Provide an example where this enhancement would improve Study Timer**
+When creating a feature request, please fill out the template provided.
 
 ### Documentation
 
@@ -271,7 +264,7 @@ Before you submit your Pull Request (PR) consider the following:
    git push -u origin my-fix-branch-issue-id
    ```
 
-9. In GitHub, send a pull request to `Study Timer:main`.
+9. In GitHub, send a pull request to `studytimer.io:main`.
 
 ### Reviewing a Pull Request
 
