@@ -168,7 +168,7 @@ export class HomePage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener('keydown', this.#handleShortcut);
+    window.addEventListener('keydown', this.#onKeydown);
     this._settings = { ...settingsStore.settings };
     this.#reset();
     settingsStore.addEventListener(
@@ -178,7 +178,7 @@ export class HomePage extends LitElement {
   }
 
   disconnectedCallback() {
-    window.removeEventListener('keydown', this.#handleShortcut);
+    window.removeEventListener('keydown', this.#onKeydown);
     super.disconnectedCallback();
     settingsStore.removeEventListener(
       SETTINGS_EVENT.SETTINGS_FORM_SUBMIT,
@@ -290,7 +290,7 @@ export class HomePage extends LitElement {
     </div>`;
   }
 
-  /** @param {Event} event */
+  /** @param {{ target: EventTarget | null }} event */
   #selectMode({ target }) {
     if (target instanceof HTMLButtonElement) {
       const mode = /** @type {import("../index.d.js").PomodoroModeKind} */ (
@@ -383,87 +383,66 @@ export class HomePage extends LitElement {
   }
 
   /** @param {KeyboardEvent} event */
-  #handleShortcut = (event) => {
-    // ALT + key shortcuts for modes
-    if (event.altKey) {
-      let targetButton;
-      switch (event.key.toLowerCase()) {
-        case 'p':
-          // Find the Pomodoro mode button
-          targetButton = this.#pomodoroModeButtonEls.find(
-            (b) => b.dataset.mode === POMODORO_MODE.POMODORO
-          );
-          break;
-        case 's':
-          // Short Break mode button
-          targetButton = this.#pomodoroModeButtonEls.find(
-            (b) => b.dataset.mode === POMODORO_MODE.SHORT_BREAK
-          );
-          break;
-        case 'l':
-          // Long Break mode button
-          targetButton = this.#pomodoroModeButtonEls.find(
-            (b) => b.dataset.mode === POMODORO_MODE.LONG_BREAK
-          );
-          break;
-        case 'r':
-          // Trigger reset action
-          this.#triggerTimerAction(POMODORO_TIMER_ACTION.RESET);
-          event.preventDefault();
-          return;
-        default:
-          return;
-      }
-
-      // If a button was found, simulate the click and change the mode
-      if (targetButton) {
-        const simulatedEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        });
-
-        targetButton.dispatchEvent(simulatedEvent);
+  #onKeydown = (event) => {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (this.#isRunning) {
+        this.#pause();
+      } else if (!this.#timerComplete) {
+        this.#start();
+        this.#dismissExercises();
       }
     }
 
-    // SPACE key to toggle start/pause
-    if (event.code === 'Space') {
-      this.#triggerTimerAction(
-        this.#isRunning
-          ? POMODORO_TIMER_ACTION.PAUSE
-          : POMODORO_TIMER_ACTION.START
-      );
-      event.preventDefault();
+    if (event.altKey) {
+      switch (event.code) {
+        case 'KeyP':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.POMODORO
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyS':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.SHORT_BREAK
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyL':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.LONG_BREAK
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyR':
+          event.preventDefault();
+          this.#reset();
+          break;
+      }
     }
   };
 
-  /** @param {'start' | 'pause' | 'reset'} action*/
-  #triggerTimerAction(action) {
-    switch (action) {
-      case POMODORO_TIMER_ACTION.START: {
-        const timerComplete = this._minutes === 0 && this._seconds === 0;
-
-        if (!this.#isRunning && !timerComplete) {
-          this.#start();
-          this.#dismissExercises();
-        }
-        break;
-      }
-
-      case POMODORO_TIMER_ACTION.PAUSE: {
-        this.#pause();
-        break;
-      }
-
-      case POMODORO_TIMER_ACTION.RESET: {
-        this.#reset();
-        this.#dismissExercises();
-        break;
-      }
-
-      default:
-        console.warn('Unknown timer action:', action);
-    }
+  /** @returns {boolean} */
+  get #timerComplete() {
+    return this._minutes === 0 && this._seconds === 0;
   }
 
   #complete() {
