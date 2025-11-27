@@ -20,8 +20,8 @@ import './components/app-top-bar.js';
 import './components/header.js';
 
 const POMODORO_RESOURCE_LINKS = Object.freeze({
-  wiki: 'https://en.wikipedia.org/wiki/Pomodoro_Technique',
-  video: 'https://youtu.be/dC4ZYCiRF_w?si=ekRqmmWpnqrAZM-c&t=8',
+  WIKI: 'https://en.wikipedia.org/wiki/Pomodoro_Technique',
+  VIDEO: 'https://youtu.be/dC4ZYCiRF_w?si=ekRqmmWpnqrAZM-c&t=8',
 });
 
 const SYSTEM_NOTIFICATIONS_RESOURCE_LINKS = Object.freeze({
@@ -207,11 +207,11 @@ export class App extends LitElement {
             </p>
             <p>
               Also, view short
-              <a href=${POMODORO_RESOURCE_LINKS.video} target="_blank"
+              <a href=${POMODORO_RESOURCE_LINKS.VIDEO} target="_blank"
                 >pomodoro video explantion</a
               >
               or visit
-              <a href=${POMODORO_RESOURCE_LINKS.wiki} target="_blank"
+              <a href=${POMODORO_RESOURCE_LINKS.WIKI} target="_blank"
                 >pomodoro technique wikipedia page</a
               >
               for more information.
@@ -347,7 +347,7 @@ export class App extends LitElement {
               </label>
             </div>
 
-            <h5>Set Times (Minutes)</h5>
+            <h5>Set Times (In Minutes)</h5>
             <div class="field-group">
               <label>
                 Pomodoro:
