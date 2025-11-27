@@ -332,11 +332,8 @@ export class HomePage extends LitElement {
       switch (action) {
         case POMODORO_TIMER_ACTION.START:
           {
-            // Check if timer is complete
-            const timerComplete = this._minutes === 0 && this._seconds === 0;
-
             // Only start if not running and timer is not complete
-            if (!this.#isRunning && !timerComplete) {
+            if (!this.#isRunning && !this.#timerComplete) {
               this.#start();
               this.#dismissExercises();
             }
