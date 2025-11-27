@@ -204,6 +204,11 @@ export class HomePage extends LitElement {
     };
   }
 
+  /** @returns {boolean} */
+  get #timerComplete() {
+    return this._minutes === 0 && this._seconds === 0;
+  }
+
   render() {
     const {
       enableExerciseDisplay,
@@ -439,11 +444,6 @@ export class HomePage extends LitElement {
       }
     }
   };
-
-  /** @returns {boolean} */
-  get #timerComplete() {
-    return this._minutes === 0 && this._seconds === 0;
-  }
 
   #complete() {
     const { enableNotifications, exercisesCount, showMotivationalQuote } =
