@@ -76,14 +76,6 @@ export class Header extends LitElement {
         align-items: center;
       }
 
-      .nav-logo img {
-        height: 1.8rem;
-        width: auto;
-        align-items: center;
-        margin-right: 0.25rem;
-        border-radius: 20px;
-      }
-
       .app-name,
       button {
         color: var(--primary);
