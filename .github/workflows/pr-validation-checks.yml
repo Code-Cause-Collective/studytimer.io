@@ -40,3 +40,4 @@ jobs:
             ```
 
             This will guide you to create a small markdown file in the `.changeset/` folder describing your changes.
+          edit-mode: replace
