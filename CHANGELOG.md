@@ -8,4 +8,4 @@
 
 ### Patch Changes
 
-- 2ba6545: Replace <dialog> with CSS-based .modal to fix Safari rendering
+- 2ba6545: Replace dialog element with css based .modal to fix safari (mobile only) rendering
