@@ -178,8 +178,8 @@ export class HomePage extends LitElement {
   }
 
   disconnectedCallback() {
-    window.removeEventListener('keydown', this.#onKeydown);
     super.disconnectedCallback();
+    window.removeEventListener('keydown', this.#onKeydown);
     settingsStore.removeEventListener(
       SETTINGS_EVENT.SETTINGS_FORM_SUBMIT,
       this.#onSettingsFormSubmit
