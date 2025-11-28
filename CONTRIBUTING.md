@@ -93,7 +93,7 @@ VITE_APP_TITLE="Study Timer | Online Pomodoro Focus Timer | Code Cause"
 
 > **Note**: _Non-sensetive_ enviorment variables used client-side **must** have prefix \_VITE\_\_ and added to `vite-end.d.ts` and `.env.local` before usage. For more information see [Vite docs: Env Variables and Modes](https://vite.dev/guide/env-and-mode).
 
-#### 3. Enable HTTPS for development
+#### 2. Enable HTTPS for development
 
 > In this case a [self-signed certificate](https://en.wikipedia.org/wiki/Self-signed_certificate) will be sufficent (in our opinion). Granted, there are other forms of certificates, such as locally trusted certificates generated with tools like [mkcert](https://github.com/FiloSottile/mkcert) or certificates issued by a certificate authority (CA) - depending on the development or testing scenario these may be more appropriate.
 
@@ -227,6 +227,8 @@ Once you have finished working on an issue or feature, you can submit a pull req
 
 ### Submitting a Pull Request
 
+**Note**: We squash commits into a single commit **before** merging any PRs, so *please do not squash commits while reviewing or during PR creation*.
+
 Before you submit your Pull Request (PR) consider the following:
 
 1. Search for an open or closed PR that relates to your submission.
@@ -258,13 +260,15 @@ Before you submit your Pull Request (PR) consider the following:
 
    **Note**: Keeping your commits small and meaningul is encouraged.
 
+   **Note**: Please write commit messages following the Conventional Commits specification, particularly by using a [commit message with a scope](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-scope-and--to-draw-attention-to-breaking-change).
+
 8. Push your branch to your remote fork:
 
    ```bash
    git push -u origin my-fix-branch-issue-id
    ```
 
-9. In GitHub, send a pull request to `studytimer.io:main`.
+9. In GitHub, send a pull request to `Code-Cause-Collective/studytimer.io:main`.
 
 ### Reviewing a Pull Request
 
@@ -285,33 +289,6 @@ If we ask for changes via code reviews then:
    git commit -m "Address review feedback"
    git push origin my-fix-branch-issue-id
    ```
-
-4. Squash your commits into a single meaningful commit using the GitHub UI or via interactive rebase is encouraged:
-
-- Decide how many commits you want to squash. For example, to squash the last 5 commits, run:
-  ```bash
-  git rebase -i HEAD~5
-  ```
-- An editor will open with a list of commits like this:
-  ```bash
-  pick abc123 Commit message 1
-  pick def456 Commit message 2
-  pick 789abc Commit message 3
-  pick 456def Commit message 4
-  pick 123789 Commit message 5
-  ```
-- Change pick to squash (or s) for all commits you want to combine into the first one. For example:
-  ```bash
-  pick abc123 Commit message 1
-  squash def456 Commit message 2
-  squash 789abc Commit message 3
-  squash 456def Commit message 4
-  squash 123789 Commit message 5
-  ```
-- Since you rewrote history, Force-push the branch to your fork is required:
-  ```bash
-  git push origin --force my-fix-branch-issue-id
-  ```
 
 That's it! Thank you for your contribution!
 
