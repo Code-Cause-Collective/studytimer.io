@@ -225,9 +225,9 @@ Once you have finished working on an issue or feature, you can submit a pull req
 
 **Please do not change the project version number in a pull request.**
 
-### Submitting a Pull Request
+**Note**: We squash commits into a single commit **before** merging any PRs, so _please do not squash commits while reviewing or during PR creation_.
 
-**Note**: We squash commits into a single commit **before** merging any PRs, so *please do not squash commits while reviewing or during PR creation*.
+### Submitting a Pull Request
 
 Before you submit your Pull Request (PR) consider the following:
 
