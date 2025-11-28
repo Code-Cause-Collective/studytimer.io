@@ -168,6 +168,7 @@ export class HomePage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    window.addEventListener('keydown', this.#onKeydown);
     this._settings = { ...settingsStore.settings };
     this.#reset();
     settingsStore.addEventListener(
@@ -178,13 +179,14 @@ export class HomePage extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    window.removeEventListener('keydown', this.#onKeydown);
     settingsStore.removeEventListener(
       SETTINGS_EVENT.SETTINGS_FORM_SUBMIT,
       this.#onSettingsFormSubmit
     );
   }
 
-  /** @returns {Element[]} */
+  /** @returns {HTMLButtonElement[]} */
   get #pomodoroModeButtonEls() {
     return Array.from(
       this.renderRoot?.querySelectorAll('button[data-mode]') ?? []
@@ -200,6 +202,11 @@ export class HomePage extends LitElement {
       shortBreakMinutes,
       longBreakMinutes,
     };
+  }
+
+  /** @returns {boolean} */
+  get #timerComplete() {
+    return this._minutes === 0 && this._seconds === 0;
   }
 
   render() {
@@ -288,7 +295,7 @@ export class HomePage extends LitElement {
     </div>`;
   }
 
-  /** @param {Event} event */
+  /** @param {{ target: EventTarget | null }} event */
   #selectMode({ target }) {
     if (target instanceof HTMLButtonElement) {
       const mode = /** @type {import("../index.d.js").PomodoroModeKind} */ (
@@ -325,11 +332,8 @@ export class HomePage extends LitElement {
       switch (action) {
         case POMODORO_TIMER_ACTION.START:
           {
-            // Check if timer is complete
-            const timerComplete = this._minutes === 0 && this._seconds === 0;
-
             // Only start if not running and timer is not complete
-            if (!this.#isRunning && !timerComplete) {
+            if (!this.#isRunning && !this.#timerComplete) {
               this.#start();
               this.#dismissExercises();
             }
@@ -379,6 +383,64 @@ export class HomePage extends LitElement {
     this.#remainingTimeSeconds = this.#totalTimeSeconds;
     this.#updatePomodoroTimer();
   }
+
+  /** @param {KeyboardEvent} event */
+  #onKeydown = (event) => {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (this.#isRunning) {
+        this.#pause();
+      } else if (!this.#timerComplete) {
+        this.#start();
+        this.#dismissExercises();
+      }
+    }
+
+    if (event.altKey) {
+      switch (event.code) {
+        case 'KeyP':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.POMODORO
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyS':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.SHORT_BREAK
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyL':
+          {
+            event.preventDefault();
+            this.#selectMode({
+              target:
+                this.#pomodoroModeButtonEls.find(
+                  (buttonEl) =>
+                    buttonEl.dataset?.mode === POMODORO_MODE.LONG_BREAK
+                ) ?? null,
+            });
+          }
+          break;
+        case 'KeyR':
+          event.preventDefault();
+          this.#reset();
+          break;
+      }
+    }
+  };
 
   #complete() {
     const { enableNotifications, exercisesCount, showMotivationalQuote } =
