@@ -3,7 +3,7 @@ import { isNum } from '../utils/helpers.js';
 import { DEFAULT_SETTINGS } from './settings.js';
 
 /** @type {Readonly<Record<string, import("../index.d.js").ExerciseCategory>>} */
-const EXERCISE_CATEGORY = Object.freeze({
+export const EXERCISE_CATEGORY = Object.freeze({
   UPPER_BODY: 'upperBody',
   LOWER_BODY: 'lowerBody',
   CORE: 'core',
@@ -112,16 +112,29 @@ const EXERCISES_ENTRIES = Object.freeze([
 class ExercisesStore {
   /**
    * @param {number} exercisesCount
+   * @param {string[]} selectedCategories
    * @returns {import("../index.d.js").Exercise[]}
    */
-  static getRandomExercises(exercisesCount) {
+  static getRandomExercises(exercisesCount, selectedCategories = []) {
     const count = isNum(exercisesCount)
       ? exercisesCount
       : DEFAULT_SETTINGS.exercisesCount;
+
+    const allowedCategories =
+      Array.isArray(selectedCategories) && selectedCategories.length > 0
+        ? selectedCategories
+        : null;
+
+    const filteredEntries = allowedCategories
+      ? EXERCISES_ENTRIES.filter(([category]) =>
+          allowedCategories.includes(category)
+        )
+      : EXERCISES_ENTRIES;
+
     const result = [];
     const pairSet = new Set();
 
-    const maxPairs = EXERCISES_ENTRIES.reduce(
+    const maxPairs = filteredEntries.reduce(
       (sum, [, list]) => sum + list.length,
       0
     );
@@ -130,17 +143,16 @@ class ExercisesStore {
 
     while (result.length < limit) {
       const [randomCategory, exerciseList] =
-        EXERCISES_ENTRIES[Math.floor(Math.random() * EXERCISES_ENTRIES.length)];
+        filteredEntries[Math.floor(Math.random() * filteredEntries.length)];
+
       const randomExercise =
         exerciseList[Math.floor(Math.random() * exerciseList.length)];
 
       const key = `${randomCategory}:${randomExercise}`;
 
-      if (pairSet.has(key)) {
-        continue;
-      } else {
-        pairSet.add(key);
-      }
+      if (pairSet.has(key)) continue;
+
+      pairSet.add(key);
 
       result.push({
         category: randomCategory,

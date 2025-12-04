@@ -12,6 +12,10 @@ export const DEFAULT_SETTINGS = Object.freeze({
   exerciseReps: 5,
   exerciseSets: 1,
   exercisesCount: 1,
+
+  //NEW: multi-select category filter (empty = allow all)
+  selectedExerciseCategories: [],
+
   enableNotifications: false,
   showTimerInTitle: false,
   showMotivationalQuote: true,
@@ -36,18 +40,18 @@ class SettingsStore extends EventTarget {
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of settingsMap.entries()) {
-      const storedValue = /** @type {boolean | number | null} */ (
-        this.#settingsStorage.get(key)
-      );
+      const storedValue = this.#settingsStorage.get(key);
 
-      const value = /** @type {boolean | number} */ (
+      //FIXED: now supports arrays (for multi-select)
+      const value =
         storedValue === null
           ? defaultValue
-          : (isBool(defaultValue) && isBool(storedValue)) ||
-              (isNum(defaultValue) && isNum(storedValue))
+          : Array.isArray(defaultValue) && Array.isArray(storedValue)
             ? storedValue
-            : defaultValue
-      );
+            : (isBool(defaultValue) && isBool(storedValue)) ||
+                (isNum(defaultValue) && isNum(storedValue))
+              ? storedValue
+              : defaultValue;
 
       settingsMap.set(key, value);
       this.#settingsStorage.set(key, value);
@@ -69,11 +73,15 @@ class SettingsStore extends EventTarget {
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
-      const val = /** @type {boolean | number} */ (
-        valueMap.has(key) ? valueMap.get(key) : defaultValue
-      );
+      const val = valueMap.has(key) ? valueMap.get(key) : defaultValue;
 
-      const newValue = isBool(val) || isNum(val) ? val : defaultValue;
+      //FIXED: now supports arrays (for multi-select)
+      const newValue =
+        Array.isArray(defaultValue) && Array.isArray(val)
+          ? val
+          : isBool(val) || isNum(val)
+            ? val
+            : defaultValue;
 
       settingsMap.set(key, newValue);
       this.#settingsStorage.set(key, newValue);

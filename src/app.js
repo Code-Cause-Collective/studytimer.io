@@ -7,6 +7,7 @@ import { captionTextStyles } from './shared/styles/captionTextStyles.js';
 import { linkStyles } from './shared/styles/linkStyles.js';
 import { modalStyles } from './shared/styles/modalStyles.js';
 import { appStore } from './stores/app.js';
+import { EXERCISE_CATEGORY } from './stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from './stores/settings.js';
 import {
   CLIENT_ERROR_MESSAGE,
@@ -14,7 +15,7 @@ import {
   SETTINGS_EVENT,
   STORAGE_KEY_NAMESPACE,
 } from './utils/constants.js';
-import { isBool, isNum } from './utils/helpers.js';
+import { isBool, isNum, toSentenceCase } from './utils/helpers.js';
 
 import './components/app-top-bar.js';
 import './components/header.js';
@@ -254,6 +255,7 @@ export class App extends LitElement {
       exercisesCount,
       exerciseReps,
       exerciseSets,
+      selectedExerciseCategories,
       pomodoroMinutes,
       shortBreakMinutes,
       longBreakMinutes,
@@ -268,7 +270,26 @@ export class App extends LitElement {
         <h1>Settings</h1>
         <div>
           <form id="settingsForm" @submit=${this.#onSubmit}>
-            <h5>Preferences</h5>
+            <h5>Exercise Category Filter</h5>
+            <label> Select allowed exercise categories (multi-select): </label>
+
+            <select
+              multiple
+              size="6"
+              name="selectedExerciseCategories"
+              @change=${this.#updateCategorySelection}
+            >
+              ${Object.values(EXERCISE_CATEGORY).map(
+                (category) => html`
+                  <option
+                    value=${category}
+                    ?selected=${selectedExerciseCategories.includes(category)}
+                  >
+                    ${toSentenceCase(category)}
+                  </option>
+                `
+              )}
+            </select>
 
             <div class="checkbox-group">
               <label>
@@ -444,6 +465,22 @@ export class App extends LitElement {
         };
       }
     }
+  }
+
+  #updateCategorySelection(event) {
+    const options = event.target.options;
+    const selected = [];
+
+    for (const option of options) {
+      if (option.selected) {
+        selected.push(option.value);
+      }
+    }
+
+    this._settingsFormValues = {
+      ...this._settingsFormValues,
+      selectedExerciseCategories: selected,
+    };
   }
 
   #closeEnableNotificationsModal() {
