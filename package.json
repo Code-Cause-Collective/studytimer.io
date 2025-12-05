@@ -41,11 +41,11 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-security": "^3.0.1",
     "jsdom": "^27.2.0",
-    "prettier": "^3.7.3",
+    "prettier": "^3.7.4",
     "prettier-eslint": "^16.4.2",
     "terser": "^5.44.1",
     "vite": "^7.2.6",
     "vite-plugin-eslint": "^1.8.1",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.15"
   }
 }
