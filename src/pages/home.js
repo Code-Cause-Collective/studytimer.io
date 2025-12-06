@@ -445,6 +445,7 @@ export class HomePage extends LitElement {
   #complete() {
     const { enableNotifications, exercisesCount, showMotivationalQuote } =
       this._settings;
+
     const isPomodoroModeSelected =
       this._selectedPomodoroMode === POMODORO_MODE.POMODORO;
 
@@ -463,10 +464,11 @@ export class HomePage extends LitElement {
 
     if (isPomodoroModeSelected) {
       this._showExercises = true;
-      this._exercises = ExercisesStore.getRandomExercises(
-        exercisesCount,
-        this._settings.selectedExerciseCategories
-      );
+
+      this._exercises = ExercisesStore.getRandomExercises(exercisesCount, {
+        categories: this._settings.selectedExerciseCategories,
+        exercises: this._settings.selectedExercises,
+      });
     }
   }
 

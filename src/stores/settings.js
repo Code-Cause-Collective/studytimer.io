@@ -13,17 +13,21 @@ export const DEFAULT_SETTINGS = Object.freeze({
   exerciseSets: 1,
   exercisesCount: 1,
 
-  //NEW: multi-select category filter (empty = allow all)
+  // NEW: Category filter (multi-select)
   selectedExerciseCategories: [],
+
+  // NEW: Exercise-level multi-select filter (empty = allow all)
+  selectedExercises: [],
 
   enableNotifications: false,
   showTimerInTitle: false,
   showMotivationalQuote: true,
+
   ...DEFAULT_POMODORO_TIMES,
 });
 
 class SettingsStore extends EventTarget {
-  /** @type {import("../index.d.js").Settings} */
+  /** @type {import('../index.d.js').Settings} */
   #settings = { ...DEFAULT_SETTINGS };
   /** @type {LocalStorageService} */
   #settingsStorage;
@@ -31,18 +35,20 @@ class SettingsStore extends EventTarget {
   /** @param {LocalStorageService} settingsStorage */
   constructor(settingsStorage) {
     super();
+
     if (!settingsStorage || !(settingsStorage instanceof LocalStorageService)) {
       throw new Error(CLIENT_ERROR_MESSAGE.STORAGE_INVALID);
     }
+
     this.#settingsStorage = settingsStorage;
 
-    // Load settings from storage on init
+    // Load settings from storage
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of settingsMap.entries()) {
       const storedValue = this.#settingsStorage.get(key);
 
-      //FIXED: now supports arrays (for multi-select)
+      // Handle arrays, booleans, numbers
       const value =
         storedValue === null
           ? defaultValue
@@ -67,20 +73,22 @@ class SettingsStore extends EventTarget {
     return this.#settings;
   }
 
-  /** @param {import("../index.d.js").Settings} value */
-  set settings(value) {
-    const valueMap = new Map(Object.entries(value));
+  /** @param {import('../index.d.js').Settings} nextSettings */
+  set settings(nextSettings) {
+    const valueMap = new Map(Object.entries(nextSettings));
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
-      const val = valueMap.has(key) ? valueMap.get(key) : defaultValue;
+      const incomingValue = valueMap.has(key)
+        ? valueMap.get(key)
+        : defaultValue;
 
-      //FIXED: now supports arrays (for multi-select)
+      // Support array settings (category & exercise filter)
       const newValue =
-        Array.isArray(defaultValue) && Array.isArray(val)
-          ? val
-          : isBool(val) || isNum(val)
-            ? val
+        Array.isArray(defaultValue) && Array.isArray(incomingValue)
+          ? incomingValue
+          : isBool(incomingValue) || isNum(incomingValue)
+            ? incomingValue
             : defaultValue;
 
       settingsMap.set(key, newValue);

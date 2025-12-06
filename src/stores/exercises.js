@@ -109,30 +109,50 @@ const EXERCISES_ENTRIES = Object.freeze([
   ],
 ]);
 
+// 🔥 MOST IMPORTANT FIX:
+export const ALL_EXERCISES = Object.fromEntries(EXERCISES_ENTRIES);
+
 class ExercisesStore {
+  // Attach so UI can use ExercisesStore.ALL_EXERCISES
+  static ALL_EXERCISES = ALL_EXERCISES;
+
   /**
    * @param {number} exercisesCount
-   * @param {string[]} selectedCategories
+   * @param {{ categories?: string[], exercises?: string[] }} filters
    * @returns {import("../index.d.js").Exercise[]}
    */
-  static getRandomExercises(exercisesCount, selectedCategories = []) {
+  static getRandomExercises(exercisesCount, filters = {}) {
     const count = isNum(exercisesCount)
       ? exercisesCount
       : DEFAULT_SETTINGS.exercisesCount;
 
-    const allowedCategories =
-      Array.isArray(selectedCategories) && selectedCategories.length > 0
-        ? selectedCategories
-        : null;
+    const { categories = [], exercises = [] } = filters;
 
-    const filteredEntries = allowedCategories
+    const categoryFilter =
+      Array.isArray(categories) && categories.length > 0 ? categories : null;
+
+    const exerciseFilter =
+      Array.isArray(exercises) && exercises.length > 0 ? exercises : null;
+
+    let filteredEntries = categoryFilter
       ? EXERCISES_ENTRIES.filter(([category]) =>
-          allowedCategories.includes(category)
+          categoryFilter.includes(category)
         )
       : EXERCISES_ENTRIES;
 
+    if (exerciseFilter) {
+      filteredEntries = filteredEntries
+        .map(([category, exerciseList]) => {
+          const filteredList = exerciseList.filter((ex) =>
+            exerciseFilter.includes(ex)
+          );
+          return filteredList.length > 0 ? [category, filteredList] : null;
+        })
+        .filter(Boolean);
+    }
+
     const result = [];
-    const pairSet = new Set();
+    const used = new Set();
 
     const maxPairs = filteredEntries.reduce(
       (sum, [, list]) => sum + list.length,
@@ -142,22 +162,16 @@ class ExercisesStore {
     const limit = Math.min(count, maxPairs);
 
     while (result.length < limit) {
-      const [randomCategory, exerciseList] =
+      const [category, list] =
         filteredEntries[Math.floor(Math.random() * filteredEntries.length)];
 
-      const randomExercise =
-        exerciseList[Math.floor(Math.random() * exerciseList.length)];
+      const selected = list[Math.floor(Math.random() * list.length)];
+      const key = `${category}:${selected}`;
 
-      const key = `${randomCategory}:${randomExercise}`;
+      if (used.has(key)) continue;
+      used.add(key);
 
-      if (pairSet.has(key)) continue;
-
-      pairSet.add(key);
-
-      result.push({
-        category: randomCategory,
-        name: randomExercise,
-      });
+      result.push({ category, name: selected });
     }
 
     return result;

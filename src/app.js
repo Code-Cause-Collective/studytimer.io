@@ -7,7 +7,7 @@ import { captionTextStyles } from './shared/styles/captionTextStyles.js';
 import { linkStyles } from './shared/styles/linkStyles.js';
 import { modalStyles } from './shared/styles/modalStyles.js';
 import { appStore } from './stores/app.js';
-import { EXERCISE_CATEGORY } from './stores/exercises.js';
+import ExercisesStore, { EXERCISE_CATEGORY } from './stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from './stores/settings.js';
 import {
   CLIENT_ERROR_MESSAGE,
@@ -255,183 +255,241 @@ export class App extends LitElement {
       exercisesCount,
       exerciseReps,
       exerciseSets,
-      selectedExerciseCategories,
       pomodoroMinutes,
       shortBreakMinutes,
       longBreakMinutes,
     } = this._settingsFormValues;
 
-    return html`<div
-      class="modal"
-      id="settingsModal"
-      ?hidden=${!this._settingsModalOpen}
-    >
-      <div class="modal-content">
-        <h1>Settings</h1>
-        <div>
-          <form id="settingsForm" @submit=${this.#onSubmit}>
-            <h5>Exercise Category Filter</h5>
-            <label> Select allowed exercise categories (multi-select): </label>
+    return html`
+      <div class="modal" id="settingsModal" ?hidden=${!this._settingsModalOpen}>
+        <div class="modal-content">
+          <h1>Settings</h1>
+          <div>
+            <form id="settingsForm" @submit=${this.#onSubmit}>
+              <!-- CATEGORY FILTER -->
+              <h5>Exercise Category Filter</h5>
+              <label>Select allowed exercise categories (multi-select):</label>
 
-            <select
-              multiple
-              size="6"
-              name="selectedExerciseCategories"
-              @change=${this.#updateCategorySelection}
-            >
-              ${Object.values(EXERCISE_CATEGORY).map(
-                (category) => html`
-                  <option
-                    value=${category}
-                    ?selected=${selectedExerciseCategories.includes(category)}
-                  >
-                    ${toSentenceCase(category)}
-                  </option>
-                `
-              )}
-            </select>
+              <select
+                multiple
+                size="6"
+                name="selectedExerciseCategories"
+                @change=${this.#updateCategorySelection}
+              >
+                ${Object.values(EXERCISE_CATEGORY).map(
+                  (category) => html`
+                    <option
+                      value=${category}
+                      ?selected=${this._settingsFormValues.selectedExerciseCategories?.includes(
+                        category
+                      )}
+                    >
+                      ${toSentenceCase(category)}
+                    </option>
+                  `
+                )}
+              </select>
 
-            <div class="checkbox-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="showTimerInTitle"
-                  .checked=${showTimerInTitle}
-                  @change=${this.#updateSettingsField}
-                />
-                Show timer in title
-              </label>
+              <!-- EXERCISE FILTER -->
+              <h5>Exercise Filter</h5>
+              <label>Select specific exercises (multi-select):</label>
 
-              <label>
-                <input
-                  type="checkbox"
-                  name="showMotivationalQuote"
-                  .checked=${showMotivationalQuote}
-                  @change=${this.#updateSettingsField}
-                />
-                Show motivational quote
-              </label>
+              <select
+                multiple
+                size="8"
+                name="selectedExercises"
+                @change=${this.#updateExerciseSelection}
+              >
+                ${Object.entries(ExercisesStore.ALL_EXERCISES).map(
+                  ([category, exercises]) => html`
+                    <optgroup label="${toSentenceCase(category)}">
+                      ${exercises.map(
+                        (ex) => html`
+                          <option
+                            value=${ex}
+                            ?selected=${this._settingsFormValues.selectedExercises?.includes(
+                              ex
+                            )}
+                          >
+                            ${ex}
+                          </option>
+                        `
+                      )}
+                    </optgroup>
+                  `
+                )}
+              </select>
 
-              <label>
-                <input
-                  type="checkbox"
-                  name="enableNotifications"
-                  .checked=${enableNotifications}
-                  @change=${this.#updateSettingsField}
-                />
-                Enable desktop notifications
-              </label>
+              <!-- OTHER SETTINGS CHECKBOXES -->
+              <div class="checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="showTimerInTitle"
+                    .checked=${showTimerInTitle}
+                    @change=${this.#updateSettingsField}
+                  />
+                  Show timer in title
+                </label>
 
-              <label>
-                <input
-                  type="checkbox"
-                  name="enableExerciseDisplay"
-                  .checked=${enableExerciseDisplay}
-                  @change=${this.#updateSettingsField}
-                />
-                Enable exercise display after the timer ends
-              </label>
-            </div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="showMotivationalQuote"
+                    .checked=${showMotivationalQuote}
+                    @change=${this.#updateSettingsField}
+                  />
+                  Show motivational quote
+                </label>
 
-            <div class="field-group">
-              <label>
-                Exercises Count:
-                <input
-                  type="number"
-                  name="exercisesCount"
-                  min="1"
-                  .value=${String(exercisesCount)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="enableNotifications"
+                    .checked=${enableNotifications}
+                    @change=${this.#updateSettingsField}
+                  />
+                  Enable desktop notifications
+                </label>
 
-              <label>
-                Exercise Reps:
-                <input
-                  type="number"
-                  name="exerciseReps"
-                  min="1"
-                  .value=${String(exerciseReps)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="enableExerciseDisplay"
+                    .checked=${enableExerciseDisplay}
+                    @change=${this.#updateSettingsField}
+                  />
+                  Enable exercise display after the timer ends
+                </label>
+              </div>
 
-              <label>
-                Exercise Sets:
-                <input
-                  type="number"
-                  name="exerciseSets"
-                  min="1"
-                  .value=${String(exerciseSets)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
-            </div>
+              <!-- EXERCISE SETTINGS -->
+              <div class="field-group">
+                <label>
+                  Exercises Count:
+                  <input
+                    type="number"
+                    name="exercisesCount"
+                    min="1"
+                    .value=${String(exercisesCount)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
 
-            <h5>Set Times (In Minutes)</h5>
-            <div class="field-group">
-              <label>
-                Pomodoro:
-                <input
-                  type="number"
-                  name="pomodoroMinutes"
-                  min="1"
-                  .value=${String(pomodoroMinutes)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
+                <label>
+                  Exercise Reps:
+                  <input
+                    type="number"
+                    name="exerciseReps"
+                    min="1"
+                    .value=${String(exerciseReps)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
 
-              <label>
-                Short Break:
-                <input
-                  type="number"
-                  name="shortBreakMinutes"
-                  min="1"
-                  .value=${String(shortBreakMinutes)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
+                <label>
+                  Exercise Sets:
+                  <input
+                    type="number"
+                    name="exerciseSets"
+                    min="1"
+                    .value=${String(exerciseSets)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
+              </div>
 
-              <label>
-                Long Break:
-                <input
-                  type="number"
-                  name="longBreakMinutes"
-                  min="1"
-                  .value=${String(longBreakMinutes)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
-            </div>
+              <!-- TIMER DURATIONS -->
+              <h5>Set Times (In Minutes)</h5>
+              <div class="field-group">
+                <label>
+                  Pomodoro:
+                  <input
+                    type="number"
+                    name="pomodoroMinutes"
+                    min="1"
+                    .value=${String(pomodoroMinutes)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
 
-            <div class="button-group">
-              <button type="submit">Save</button>
-              <button type="button" @click=${this.#onReset}>Reset</button>
-            </div>
-          </form>
+                <label>
+                  Short Break:
+                  <input
+                    type="number"
+                    name="shortBreakMinutes"
+                    min="1"
+                    .value=${String(shortBreakMinutes)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
+
+                <label>
+                  Long Break:
+                  <input
+                    type="number"
+                    name="longBreakMinutes"
+                    min="1"
+                    .value=${String(longBreakMinutes)}
+                    @input=${this.#updateSettingsField}
+                  />
+                </label>
+              </div>
+
+              <div class="button-group">
+                <button type="submit">Save</button>
+                <button type="button" @click=${this.#onReset}>Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <button @click=${this.#closeSettingsModal} class="primary">
+            Close
+          </button>
         </div>
-        <button @click=${this.#closeSettingsModal} class="primary">
-          Close
-        </button>
       </div>
-    </div>`;
+    `;
   }
 
   /** @param {Event} event */
+  #updateExerciseSelection(event) {
+    const options = event.target.options;
+    const selectedExercises = [];
+
+    for (const option of options) {
+      if (option.selected) {
+        selectedExercises.push(option.value);
+      }
+    }
+
+    this._settingsFormValues = {
+      ...this._settingsFormValues,
+      selectedExercises,
+    };
+  }
+
   #onSubmit(event) {
     event.preventDefault();
 
     for (const value of Object.values(this._settingsFormValues)) {
+      // Allow arrays without validation
+      if (Array.isArray(value)) continue;
+
+      // Validate booleans and numbers
       if (!isNum(value) && !isBool(value)) {
         alert(CLIENT_ERROR_MESSAGE.FORM.INVALID_INPUTS);
         return;
-      } else if (isNum(value) && Number(value) <= 0) {
+      }
+
+      // Validate positive numbers
+      if (isNum(value) && Number(value) <= 0) {
         alert(CLIENT_ERROR_MESSAGE.FORM.INVALID_POSITIVE_INTEGER);
         return;
       }
     }
 
     settingsStore.settings = this._settingsFormValues;
+
     settingsStore.dispatchEvent(
       new CustomEvent(SETTINGS_EVENT.SETTINGS_FORM_SUBMIT)
     );
@@ -469,17 +527,37 @@ export class App extends LitElement {
 
   #updateCategorySelection(event) {
     const options = event.target.options;
-    const selected = [];
+    const selectedCategories = [];
 
     for (const option of options) {
       if (option.selected) {
-        selected.push(option.value);
+        selectedCategories.push(option.value);
       }
     }
 
+    // Auto-filter all exercises belonging to selected categories
+    const filteredExercises = [];
+
+    if (selectedCategories.length > 0) {
+      for (const [category, exercises] of Object.entries(
+        ExercisesStore.ALL_EXERCISES
+      )) {
+        if (selectedCategories.includes(category)) {
+          filteredExercises.push(...exercises);
+        }
+      }
+    } else {
+      // If no category selected → allow all exercises
+      for (const exList of Object.values(ExercisesStore.ALL_EXERCISES)) {
+        filteredExercises.push(...exList);
+      }
+    }
+
+    // Apply settings update
     this._settingsFormValues = {
       ...this._settingsFormValues,
-      selectedExerciseCategories: selected,
+      selectedExerciseCategories: selectedCategories,
+      selectedExercises: filteredExercises, // auto-update exercise list
     };
   }
 
