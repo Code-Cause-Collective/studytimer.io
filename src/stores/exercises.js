@@ -3,7 +3,7 @@ import { isNum } from '../utils/helpers.js';
 import { DEFAULT_SETTINGS } from './settings.js';
 
 /** @type {Readonly<Record<string, import("../index.d.js").ExerciseCategory>>} */
-const EXERCISE_CATEGORY = Object.freeze({
+export const EXERCISE_CATEGORY = Object.freeze({
   UPPER_BODY: 'upperBody',
   LOWER_BODY: 'lowerBody',
   CORE: 'core',
@@ -109,19 +109,52 @@ const EXERCISES_ENTRIES = Object.freeze([
   ],
 ]);
 
+// 🔥 MOST IMPORTANT FIX:
+export const ALL_EXERCISES = Object.fromEntries(EXERCISES_ENTRIES);
+
 class ExercisesStore {
+  // Attach so UI can use ExercisesStore.ALL_EXERCISES
+  static ALL_EXERCISES = ALL_EXERCISES;
+
   /**
    * @param {number} exercisesCount
+   * @param {{ categories?: string[], exercises?: string[] }} filters
    * @returns {import("../index.d.js").Exercise[]}
    */
-  static getRandomExercises(exercisesCount) {
+  static getRandomExercises(exercisesCount, filters = {}) {
     const count = isNum(exercisesCount)
       ? exercisesCount
       : DEFAULT_SETTINGS.exercisesCount;
-    const result = [];
-    const pairSet = new Set();
 
-    const maxPairs = EXERCISES_ENTRIES.reduce(
+    const { categories = [], exercises = [] } = filters;
+
+    const categoryFilter =
+      Array.isArray(categories) && categories.length > 0 ? categories : null;
+
+    const exerciseFilter =
+      Array.isArray(exercises) && exercises.length > 0 ? exercises : null;
+
+    let filteredEntries = categoryFilter
+      ? EXERCISES_ENTRIES.filter(([category]) =>
+          categoryFilter.includes(category)
+        )
+      : EXERCISES_ENTRIES;
+
+    if (exerciseFilter) {
+      filteredEntries = filteredEntries
+        .map(([category, exerciseList]) => {
+          const filteredList = exerciseList.filter((ex) =>
+            exerciseFilter.includes(ex)
+          );
+          return filteredList.length > 0 ? [category, filteredList] : null;
+        })
+        .filter(Boolean);
+    }
+
+    const result = [];
+    const used = new Set();
+
+    const maxPairs = filteredEntries.reduce(
       (sum, [, list]) => sum + list.length,
       0
     );
@@ -129,23 +162,16 @@ class ExercisesStore {
     const limit = Math.min(count, maxPairs);
 
     while (result.length < limit) {
-      const [randomCategory, exerciseList] =
-        EXERCISES_ENTRIES[Math.floor(Math.random() * EXERCISES_ENTRIES.length)];
-      const randomExercise =
-        exerciseList[Math.floor(Math.random() * exerciseList.length)];
+      const [category, list] =
+        filteredEntries[Math.floor(Math.random() * filteredEntries.length)];
 
-      const key = `${randomCategory}:${randomExercise}`;
+      const selected = list[Math.floor(Math.random() * list.length)];
+      const key = `${category}:${selected}`;
 
-      if (pairSet.has(key)) {
-        continue;
-      } else {
-        pairSet.add(key);
-      }
+      if (used.has(key)) continue;
+      used.add(key);
 
-      result.push({
-        category: randomCategory,
-        name: randomExercise,
-      });
+      result.push({ category, name: selected });
     }
 
     return result;

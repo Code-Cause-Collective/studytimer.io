@@ -135,7 +135,7 @@ export class HomePage extends LitElement {
     _motivationalQuote: { type: String, state: true },
     _selectedPomodoroMode: { type: String, state: true },
     _exercises: { type: Array, state: true },
-    _showExercises: { type: Array, state: true },
+    _showExercises: { type: Boolean, state: true },
     _settings: { type: Object, state: true },
     _minutes: { type: Number, state: true },
     _seconds: { type: Number, state: true },
@@ -445,6 +445,7 @@ export class HomePage extends LitElement {
   #complete() {
     const { enableNotifications, exercisesCount, showMotivationalQuote } =
       this._settings;
+
     const isPomodoroModeSelected =
       this._selectedPomodoroMode === POMODORO_MODE.POMODORO;
 
@@ -463,7 +464,11 @@ export class HomePage extends LitElement {
 
     if (isPomodoroModeSelected) {
       this._showExercises = true;
-      this._exercises = ExercisesStore.getRandomExercises(exercisesCount);
+
+      this._exercises = ExercisesStore.getRandomExercises(exercisesCount, {
+        categories: this._settings.selectedExerciseCategories,
+        exercises: this._settings.selectedExercises,
+      });
     }
   }
 
