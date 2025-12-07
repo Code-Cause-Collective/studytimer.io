@@ -4,7 +4,7 @@
 ## Change(s)
 
 <!-- ✏️ Describe *what* was changed in this PR. Be as clear and specific as possible. -->
-<!-- 📝 Note: Please try to use bullet points and/or numbered list. 
+<!-- 📝 Note: Please try to use bullet points and/or numbered list.
 
 **Example**
 
