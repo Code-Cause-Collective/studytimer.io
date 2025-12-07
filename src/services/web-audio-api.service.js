@@ -1,8 +1,5 @@
-import {
-  AUDIO_SOUND,
-  AUDIO_VOLUME,
-  CLIENT_ERROR_MESSAGE,
-} from '../utils/constants.js';
+import { DEFAULT_SETTINGS } from '../stores/settings.js';
+import { AUDIO_SOUND, CLIENT_ERROR_MESSAGE } from '../utils/constants.js';
 
 class WebAudioApiService {
   /** @type {AudioContext | undefined} */
@@ -59,7 +56,7 @@ class WebAudioApiService {
    * @param {number} volume
    * @returns {GainNode}
    */
-  #createGain(volume = AUDIO_VOLUME.ONE_HUNDRED_PERCENT) {
+  #createGain(volume = DEFAULT_SETTINGS.audioVolume) {
     const gainNode = /** @type {GainNode} */ (this.#audioContext?.createGain());
     gainNode.gain.value = Math.min(Math.max(volume / 100, 0), 1);
     const destination = /** @type {AudioDestinationNode} */ (
@@ -74,7 +71,7 @@ class WebAudioApiService {
    * @param {number} volume
    * @returns {Promise<void>}
    */
-  async playSound(id, volume = AUDIO_VOLUME.ONE_HUNDRED_PERCENT) {
+  async playSound(id, volume = DEFAULT_SETTINGS.audioVolume) {
     if (!this.#audioContext) {
       console.error(
         `${CLIENT_ERROR_MESSAGE.PLAY_SOUND_FAILED} AudioContext unavailable.`
