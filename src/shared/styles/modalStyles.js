@@ -37,20 +37,37 @@ const modalStyles = css`
 
   .modal-content h1,
   .modal-content h2,
-  .modal-content h3 {
-    margin-top: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--primary, #222);
-  }
-
+  .modal-content h3,
   .modal-content h4,
   .modal-content h5,
   .modal-content h6 {
     margin-top: 0;
-    font-size: 1rem;
     font-weight: 600;
     color: var(--primary, #222);
+  }
+
+  .modal-content h1 {
+    font-size: 1.25rem; /
+  }
+
+  .modal-content h2 {
+    font-size: 1.125rem; 
+  }
+
+  .modal-content h3 {
+    font-size: 1rem; 
+  }
+
+  .modal-content h4 {
+    font-size: 0.95rem; 
+  }
+
+  .modal-content h5 {
+    font-size: 0.875rem; 
+  }
+
+  .modal-content h6 {
+    font-size: 0.8rem; 
   }
 
   .modal-content p {
@@ -92,6 +109,13 @@ const modalStyles = css`
   details:hover {
     cursor: pointer;
   }
+
+  @media (max-width: 640px) {
+  .modal {
+   padding: 0.75rem;
+  }
+}
+
 `;
 
 export { modalStyles };
