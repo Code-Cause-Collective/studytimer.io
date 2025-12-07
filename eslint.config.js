@@ -26,6 +26,7 @@ export default [
         ...globals.browser,
         NodeJS: true,
         NotificationPermission: true,
+        NotificationOptions: true,
       },
     },
     plugins: { jsdoc, importPlugin },

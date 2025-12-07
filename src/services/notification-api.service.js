@@ -1,3 +1,4 @@
+import logoIcon from '../assets/images/logo-icon.png';
 import { appStore } from '../stores/app.js';
 import {
   CLIENT_ERROR_MESSAGE,
@@ -16,16 +17,15 @@ class NotificationApiService {
       return;
     }
 
+    /** @type {NotificationOptions} */
+    const notificationOptions = { body: message, icon: logoIcon };
+
     if (Notification.permission === NOTIFICATION_PERMISSION.GRANTED) {
-      new Notification(title, {
-        body: message,
-      });
+      new Notification(title, { ...notificationOptions });
     } else {
       this.requestNotificationPermission().then(function (permissionGranted) {
         if (permissionGranted) {
-          new Notification(title, {
-            body: message,
-          });
+          new Notification(title, { ...notificationOptions });
         }
       });
     }
