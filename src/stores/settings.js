@@ -1,5 +1,7 @@
 import LocalStorageService from '../services/local-storage.service.js';
 import {
+  AUDIO_SOUND,
+  AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
   DEFAULT_POMODORO_TIMES,
   STORAGE_KEY_NAMESPACE,
@@ -15,6 +17,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   enableNotifications: false,
   showTimerInTitle: false,
   showMotivationalQuote: true,
+  audioSound: AUDIO_SOUND.MELODIC_CLASSIC_DOOR_BELL.ID,
+  audioVolume: AUDIO_VOLUME.FIFTY_PERCENT,
   ...DEFAULT_POMODORO_TIMES,
 });
 
@@ -32,7 +36,7 @@ class SettingsStore extends EventTarget {
     }
     this.#settingsStorage = settingsStorage;
 
-    // Load settings from storage on init
+    // Load settings from storage
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of settingsMap.entries()) {
@@ -40,7 +44,7 @@ class SettingsStore extends EventTarget {
         this.#settingsStorage.get(key)
       );
 
-      const value = /** @type {boolean | number} */ (
+      let value = /** @type {boolean | number} */ (
         storedValue === null
           ? defaultValue
           : (isBool(defaultValue) && isBool(storedValue)) ||
@@ -48,6 +52,22 @@ class SettingsStore extends EventTarget {
             ? storedValue
             : defaultValue
       );
+
+      if (key === 'audioSound' && typeof value === 'number') {
+        const matchingAudioSound = Object.values(AUDIO_SOUND).find(
+          ({ ID }) => ID === value
+        );
+        if (matchingAudioSound === undefined) {
+          value = defaultValue;
+        }
+      } else if (key === 'audioVolume' && typeof value === 'number') {
+        const matchingAudioVolume = Object.values(AUDIO_VOLUME).find(
+          (volume) => volume === value
+        );
+        if (matchingAudioVolume === undefined) {
+          value = defaultValue;
+        }
+      }
 
       settingsMap.set(key, value);
       this.#settingsStorage.set(key, value);

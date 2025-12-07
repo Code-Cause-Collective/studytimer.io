@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
       {
         name: 'csp',
         transformIndexHtml(html) {
-          const csp = `default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self'; form-action 'self'; object-src 'none'; media-src 'none'; base-uri 'none'; upgrade-insecure-requests;`;
+          const csp = `default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self'; form-action 'self'; object-src 'none'; media-src 'self'; base-uri 'none'; upgrade-insecure-requests;`;
           html = html.replace(
             /<head>/,
             `<head>\n<meta http-equiv="Content-Security-Policy" content="${csp}">`
