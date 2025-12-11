@@ -1,11 +1,13 @@
 import { LitElement, css, html, nothing } from 'lit';
 
 import { notificationApiService } from '../services/notification-api.service.js';
+import { webAudioApiService } from '../services/web-audio-api.service.js';
 import { buttonStyles } from '../shared/styles/buttonStyles.js';
 import { checkboxStyles } from '../shared/styles/checkboxStyles.js';
 import ExercisesStore from '../stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from '../stores/settings.js';
 import {
+  AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
   DEFAULT_POMODORO_TIMES,
   POMODORO_MODE,
@@ -128,7 +130,7 @@ function getRandomMotivationalQuote() {
   ];
 }
 
-const POMODORO_MODES = Object.values(POMODORO_MODE);
+const POMODORO_MODES = Object.freeze(Object.values(POMODORO_MODE));
 
 export class HomePage extends LitElement {
   static properties = {
@@ -316,7 +318,7 @@ export class HomePage extends LitElement {
         this.#start();
         this.#dismissExercises();
       } else {
-        console.warn(CLIENT_ERROR_MESSAGE.UNKNOWN_POMODORO_MODE);
+        console.error(CLIENT_ERROR_MESSAGE.UNKNOWN_POMODORO_MODE);
       }
     }
   }
@@ -347,7 +349,7 @@ export class HomePage extends LitElement {
           this.#dismissExercises();
           break;
         default:
-          console.warn(CLIENT_ERROR_MESSAGE.UNKNOWN_TIMER_ACTION);
+          console.error(CLIENT_ERROR_MESSAGE.UNKNOWN_TIMER_ACTION);
       }
     }
   }
@@ -443,10 +445,20 @@ export class HomePage extends LitElement {
   };
 
   #complete() {
-    const { enableNotifications, exercisesCount, showMotivationalQuote } =
-      this._settings;
+    const {
+      enableNotifications,
+      exercisesCount,
+      showMotivationalQuote,
+      audioSound,
+      audioVolume,
+    } = this._settings;
     const isPomodoroModeSelected =
       this._selectedPomodoroMode === POMODORO_MODE.POMODORO;
+    const isAudioVolumeMuteSelected = audioVolume === AUDIO_VOLUME.MUTE;
+
+    if (!isAudioVolumeMuteSelected) {
+      webAudioApiService.playSound(audioSound, audioVolume);
+    }
 
     if (enableNotifications) {
       notificationApiService.sendDesktopNotification(

@@ -2,14 +2,18 @@ import { Router } from '@lit-labs/router';
 import { LitElement, css, html, nothing } from 'lit';
 
 import { notificationApiService } from './services/notification-api.service.js';
+import { webAudioApiService } from './services/web-audio-api.service.js';
 import { buttonStyles } from './shared/styles/buttonStyles.js';
 import { captionTextStyles } from './shared/styles/captionTextStyles.js';
 import { linkStyles } from './shared/styles/linkStyles.js';
 import { modalStyles } from './shared/styles/modalStyles.js';
+import { tooltipStyles } from './shared/styles/tooltipStyles.js';
 import { appStore } from './stores/app.js';
 import { EXERCISE_CATEGORY } from './stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from './stores/settings.js';
 import {
+  AUDIO_SOUND,
+  AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
   NOTIFICATION_PERMISSION,
   SETTINGS_EVENT,
@@ -19,6 +23,9 @@ import { isBool, isNum, toSentenceCase } from './utils/helpers.js';
 
 import './components/app-top-bar.js';
 import './components/header.js';
+
+const AUDIO_SOUNDS = Object.freeze(Object.values(AUDIO_SOUND));
+const AUDIO_VOLUMES = Object.freeze(Object.values(AUDIO_VOLUME));
 
 const POMODORO_RESOURCE_LINKS = Object.freeze({
   WIKI: 'https://en.wikipedia.org/wiki/Pomodoro_Technique',
@@ -86,6 +93,11 @@ export class App extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    window.addEventListener('click', this.#initAudio, { once: true });
+    window.addEventListener('pointerup', this.#initAudio, {
+      once: true,
+    });
+    window.addEventListener('keydown', this.#initAudio, { once: true });
     this._settingsFormValues = { ...settingsStore.settings };
   }
 
@@ -259,6 +271,8 @@ export class App extends LitElement {
       pomodoroMinutes,
       shortBreakMinutes,
       longBreakMinutes,
+      audioSound,
+      audioVolume,
     } = this._settingsFormValues;
 
     return html`<div
@@ -290,6 +304,7 @@ export class App extends LitElement {
                 `
               )}
             </select>
+            <h2>Preferences</h2>
 
             <div class="checkbox-group">
               <label>
@@ -333,6 +348,7 @@ export class App extends LitElement {
               </label>
             </div>
 
+            <h3>Exercises</h3>
             <div class="field-group">
               <label>
                 Exercises Count:
@@ -368,7 +384,62 @@ export class App extends LitElement {
               </label>
             </div>
 
-            <h5>Set Times (In Minutes)</h5>
+            <div id="audioSection">
+              <h3>Audio</h3>
+              <div class="tooltip tooltip-right">
+                <button
+                  ?disabled=${audioVolume === AUDIO_VOLUME.MUTE}
+                  @click=${this.#previewSound}
+                  id="previewSound"
+                  type="button"
+                >
+                  ▶
+                </button>
+                <span class="tooltiptext">Preview sound</span>
+              </div>
+            </div>
+
+            <h4>Sound</h4>
+            <div class="field-group select-group">
+              <label>
+                <select
+                  size=${AUDIO_SOUNDS.length}
+                  name="audioSound"
+                  @change=${this.#updateSettingsField}
+                  .value=${audioSound}
+                >
+                  ${AUDIO_SOUNDS.map(
+                    ({ ID, NAME }) => html`
+                      <option ?selected=${audioSound === ID} value=${ID}>
+                        ${toSentenceCase(NAME.replace(/-/g, ' '))}
+                      </option>
+                    `
+                  )}
+                </select>
+              </label>
+            </div>
+
+            <h4>Volume</h4>
+            <div class="field-group select-group">
+              <label>
+                <select
+                  size=${AUDIO_VOLUMES.length}
+                  name="audioVolume"
+                  @change=${this.#updateSettingsField}
+                  .value=${audioVolume}
+                >
+                  ${AUDIO_VOLUMES.map(
+                    (value) => html`
+                      <option ?selected=${audioVolume === value} value=${value}>
+                        ${value === AUDIO_VOLUME.MUTE ? 'Mute' : `${value}%`}
+                      </option>
+                    `
+                  )}
+                </select>
+              </label>
+            </div>
+
+            <h2>Set Times (In Minutes)</h2>
             <div class="field-group">
               <label>
                 Pomodoro:
@@ -417,16 +488,21 @@ export class App extends LitElement {
     </div>`;
   }
 
+  #previewSound() {
+    const { audioSound, audioVolume } = this._settingsFormValues;
+    webAudioApiService.playSound(audioSound, audioVolume);
+  }
+
   /** @param {Event} event */
   #onSubmit(event) {
     event.preventDefault();
 
-    for (const value of Object.values(this._settingsFormValues)) {
+    for (const [key, value] of Object.entries(this._settingsFormValues)) {
       if (!isNum(value) && !isBool(value)) {
-        alert(CLIENT_ERROR_MESSAGE.FORM.INVALID_INPUTS);
+        alert(CLIENT_ERROR_MESSAGE.INVALID_INPUTS);
         return;
-      } else if (isNum(value) && Number(value) <= 0) {
-        alert(CLIENT_ERROR_MESSAGE.FORM.INVALID_POSITIVE_INTEGER);
+      } else if (key !== 'audioVolume' && isNum(value) && Number(value) <= 0) {
+        alert(CLIENT_ERROR_MESSAGE.INVALID_POSITIVE_INTEGER);
         return;
       }
     }
@@ -464,6 +540,15 @@ export class App extends LitElement {
           [name]: value,
         };
       }
+    } else if (target instanceof HTMLSelectElement) {
+      const { name, value } = target;
+
+      if (name === 'audioSound' || name === 'audioVolume') {
+        this._settingsFormValues = {
+          ...this._settingsFormValues,
+          [name]: Number(value),
+        };
+      }
     }
   }
 
@@ -481,6 +566,8 @@ export class App extends LitElement {
       ...this._settingsFormValues,
       selectedExerciseCategories: selected,
     };
+  async #initAudio() {
+    await webAudioApiService.init();
   }
 
   #closeEnableNotificationsModal() {
@@ -504,6 +591,7 @@ export class App extends LitElement {
     captionTextStyles,
     modalStyles,
     linkStyles,
+    tooltipStyles,
     css`
       :host {
         display: flex;
@@ -563,7 +651,9 @@ export class App extends LitElement {
         gap: 10px;
       }
 
-      #settingsForm h5 {
+      #settingsForm h2,
+      #settingsForm h3,
+      #settingsForm h4 {
         margin: 0;
         padding: 0;
       }
@@ -589,6 +679,40 @@ export class App extends LitElement {
 
       #settingsForm .field-group input {
         max-width: 200px;
+      }
+
+      #settingsForm .select-group label {
+        width: 100%;
+      }
+
+      #settingsForm .field-group select {
+        cursor: pointer;
+        width: 100%;
+      }
+
+      #audioSection {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+      }
+
+      #previewSound {
+        border-radius: 50%;
+        border: 1px;
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+      }
+
+      #previewSound:hover {
+        opacity: 0.8;
+      }
+
+      #previewSound:disabled {
+        cursor: not-allowed !important;
+      }
+
+      .tooltip-right .tooltiptext {
+        transform: translateY(-30%);
       }
     `,
   ];

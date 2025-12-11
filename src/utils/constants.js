@@ -3,6 +3,31 @@ const APP_EVENT = Object.freeze({
   SETTINGS_MODAL: 'settings-modal',
 });
 
+const AUDIO_SOUND = Object.freeze({
+  ALERT_BELLS_ECHO: Object.freeze({ ID: 1, NAME: 'alert-bells-echo' }),
+  CLEAR_ANNOUNCE_TONES: Object.freeze({ ID: 2, NAME: 'clear-announce-tones' }),
+  HOME_STANDARD_DING_DONG: Object.freeze({
+    ID: 3,
+    NAME: 'home-standard-ding-dong',
+  }),
+  MELODIC_CLASSIC_DOOR_BELL: Object.freeze({
+    ID: 4,
+    NAME: 'melodic-classic-door-bell',
+  }),
+  UPLIFTING_FLUTE_NOTIFICATION: Object.freeze({
+    ID: 5,
+    NAME: 'uplifting-flute-notification',
+  }),
+});
+
+const AUDIO_VOLUME = Object.freeze({
+  MUTE: 0,
+  TWENTY_FIVE_PERCENT: 25,
+  FIFTY_PERCENT: 50,
+  SEVENTY_FIVE_PERCENT: 75,
+  ONE_HUNDRED_PERCENT: 100,
+});
+
 const CLIENT_ERROR_MESSAGE = Object.freeze({
   STORAGE_INVALID: 'Storage invalid.',
   STORAGE_NAMESPACE_INVALID: 'Storage namespace invalid.',
@@ -13,10 +38,10 @@ const CLIENT_ERROR_MESSAGE = Object.freeze({
   NOTIFICATION_REQUEST_PERMISSION_FAILED:
     'Error requesting notification permission.',
   INVALID_INPUT: 'Invalid input.',
-  FORM: Object.freeze({
-    INVALID_INPUTS: 'Input(s) invalid. Please try again.',
-    INVALID_POSITIVE_INTEGER: 'Please use positive integers.',
-  }),
+  INVALID_INPUTS: 'Input(s) invalid. Please try again.',
+  INVALID_POSITIVE_INTEGER: 'Please use positive integers.',
+  PLAY_SOUND_FAILED: 'Audio playback failed.',
+  PRELOAD_AUDIO_FAILED: 'Failed to load audio/sound.',
 });
 
 const POMODORO_MODE = Object.freeze({
@@ -55,6 +80,8 @@ const NOTIFICATION_PERMISSION = Object.freeze({
 
 export {
   APP_EVENT,
+  AUDIO_SOUND,
+  AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
   DEFAULT_POMODORO_TIMES,
   POMODORO_MODE,
