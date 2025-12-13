@@ -4,7 +4,6 @@ import { notificationApiService } from '../services/notification-api.service.js'
 import { webAudioApiService } from '../services/web-audio-api.service.js';
 import { buttonStyles } from '../shared/styles/buttonStyles.js';
 import { checkboxStyles } from '../shared/styles/checkboxStyles.js';
-import ExercisesStore from '../stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from '../stores/settings.js';
 import {
   AUDIO_VOLUME,
@@ -212,12 +211,8 @@ export class HomePage extends LitElement {
   }
 
   render() {
-    const {
-      enableExerciseDisplay,
-      exerciseReps,
-      exerciseSets,
-      showMotivationalQuote,
-    } = this._settings;
+    const { showExercises, exerciseReps, exerciseSets, showMotivationalQuote } =
+      this._settings;
 
     return html` <div class="container">
       <section id="pomodoroModes">
@@ -257,7 +252,7 @@ export class HomePage extends LitElement {
             <h2 id="quote">${this._motivationalQuote}</h2>
           </section>`
         : nothing}
-      ${this._showExercises && enableExerciseDisplay
+      ${this._showExercises && showExercises
         ? html`<section id="exercises">
             <div class="exercise-container">
               <h2>Exercises</h2>
@@ -447,7 +442,6 @@ export class HomePage extends LitElement {
   #complete() {
     const {
       enableNotifications,
-      exercisesCount,
       showMotivationalQuote,
       audioSound,
       audioVolume,
@@ -475,10 +469,8 @@ export class HomePage extends LitElement {
 
     if (isPomodoroModeSelected) {
       this._showExercises = true;
-      this._exercises = ExercisesStore.getRandomExercises(
-        exercisesCount,
-        this._settings.selectedExerciseCategories
-      );
+      // TODO: Exercises based on settings form selections
+      this._exercises = [{ category: 'fullBody', name: 'Jumping jacks' }];
     }
   }
 

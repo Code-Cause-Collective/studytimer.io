@@ -7,25 +7,33 @@ import { buttonStyles } from './shared/styles/buttonStyles.js';
 import { captionTextStyles } from './shared/styles/captionTextStyles.js';
 import { linkStyles } from './shared/styles/linkStyles.js';
 import { modalStyles } from './shared/styles/modalStyles.js';
+import { tabStyles } from './shared/styles/tabStyles.js';
 import { tooltipStyles } from './shared/styles/tooltipStyles.js';
 import { appStore } from './stores/app.js';
-import { EXERCISE_CATEGORY } from './stores/exercises.js';
 import { DEFAULT_SETTINGS, settingsStore } from './stores/settings.js';
 import {
   AUDIO_SOUND,
   AUDIO_VOLUME,
+  EXERCISES_BY_CATEGORY_MAP,
   CLIENT_ERROR_MESSAGE,
+  EXERCISE_CATEGORY,
   NOTIFICATION_PERMISSION,
   SETTINGS_EVENT,
   STORAGE_KEY_NAMESPACE,
 } from './utils/constants.js';
-import { isBool, isNum, toSentenceCase } from './utils/helpers.js';
+import {
+  isBool,
+  isNum,
+  isPlainObject,
+  toSentenceCase,
+} from './utils/helpers.js';
 
 import './components/app-top-bar.js';
 import './components/header.js';
 
 const AUDIO_SOUNDS = Object.freeze(Object.values(AUDIO_SOUND));
 const AUDIO_VOLUMES = Object.freeze(Object.values(AUDIO_VOLUME));
+const EXERCISE_CATEGORIES = Object.freeze(Object.values(EXERCISE_CATEGORY));
 
 const POMODORO_RESOURCE_LINKS = Object.freeze({
   WIKI: 'https://en.wikipedia.org/wiki/Pomodoro_Technique',
@@ -48,6 +56,7 @@ export class App extends LitElement {
     _enableNotificationsModalOpen: { type: Boolean, state: true },
     _faqModalOpen: { type: Boolean, state: true },
     _settingsModalOpen: { type: Boolean, state: true },
+    _activeCategoryTab: { type: String, state: true },
   };
 
   #router = new Router(this, [
@@ -89,6 +98,8 @@ export class App extends LitElement {
     this._faqModalOpen = false;
     /** @type {boolean} */
     this._settingsModalOpen = false;
+    /** @type {import("index.d.js").ExerciseCategory} */
+    this._activeCategoryTab = EXERCISE_CATEGORY.UPPER_BODY;
   }
 
   connectedCallback() {
@@ -263,17 +274,24 @@ export class App extends LitElement {
       showTimerInTitle,
       showMotivationalQuote,
       enableNotifications,
-      enableExerciseDisplay,
-      exercisesCount,
+      showExercises,
+      exercisesByCategory,
       exerciseReps,
       exerciseSets,
-      selectedExerciseCategories,
       pomodoroMinutes,
       shortBreakMinutes,
       longBreakMinutes,
       audioSound,
       audioVolume,
     } = this._settingsFormValues;
+    const activeCategoryExercises =
+      EXERCISES_BY_CATEGORY_MAP.get(
+        /** @type {import("index.d.js").ExerciseCategory} */ (
+          this._activeCategoryTab
+        )
+      ) ?? [];
+    const selectedCategoryExercises =
+      exercisesByCategory[this._activeCategoryTab] ?? [];
 
     return html`<div
       class="modal"
@@ -284,35 +302,25 @@ export class App extends LitElement {
         <h1>Settings</h1>
         <div>
           <form id="settingsForm" @submit=${this.#onSubmit}>
-            <h5>Exercise Category Filter</h5>
-            <label> Select allowed exercise categories (multi-select): </label>
-
-            <select
-              multiple
-              size="6"
-              name="selectedExerciseCategories"
-              @change=${this.#updateCategorySelection}
-            >
-              ${Object.values(EXERCISE_CATEGORY).map(
-                (category) => html`
-                  <option
-                    value=${category}
-                    ?selected=${selectedExerciseCategories.includes(category)}
-                  >
-                    ${toSentenceCase(category)}
-                  </option>
-                `
-              )}
-            </select>
-            <h2>Preferences</h2>
+            <h2>General</h2>
 
             <div class="checkbox-group">
               <label>
                 <input
                   type="checkbox"
+                  name="enableNotifications"
+                  .checked=${enableNotifications}
+                  @change=${this.#onInputChange}
+                />
+                Enable desktop notifications
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
                   name="showTimerInTitle"
                   .checked=${showTimerInTitle}
-                  @change=${this.#updateSettingsField}
+                  @change=${this.#onInputChange}
                 />
                 Show timer in title
               </label>
@@ -322,7 +330,7 @@ export class App extends LitElement {
                   type="checkbox"
                   name="showMotivationalQuote"
                   .checked=${showMotivationalQuote}
-                  @change=${this.#updateSettingsField}
+                  @change=${this.#onInputChange}
                 />
                 Show motivational quote
               </label>
@@ -330,37 +338,16 @@ export class App extends LitElement {
               <label>
                 <input
                   type="checkbox"
-                  name="enableNotifications"
-                  .checked=${enableNotifications}
-                  @change=${this.#updateSettingsField}
+                  name="showExercises"
+                  .checked=${showExercises}
+                  @change=${this.#onInputChange}
                 />
-                Enable desktop notifications
-              </label>
-
-              <label>
-                <input
-                  type="checkbox"
-                  name="enableExerciseDisplay"
-                  .checked=${enableExerciseDisplay}
-                  @change=${this.#updateSettingsField}
-                />
-                Enable exercise display after the timer ends
+                Show exercises after the timer ends
               </label>
             </div>
 
-            <h3>Exercises</h3>
+            <h2>Exercise</h2>
             <div class="field-group">
-              <label>
-                Exercises Count:
-                <input
-                  type="number"
-                  name="exercisesCount"
-                  min="1"
-                  .value=${String(exercisesCount)}
-                  @input=${this.#updateSettingsField}
-                />
-              </label>
-
               <label>
                 Exercise Reps:
                 <input
@@ -368,7 +355,7 @@ export class App extends LitElement {
                   name="exerciseReps"
                   min="1"
                   .value=${String(exerciseReps)}
-                  @input=${this.#updateSettingsField}
+                  @input=${this.#onInputChange}
                 />
               </label>
 
@@ -379,13 +366,56 @@ export class App extends LitElement {
                   name="exerciseSets"
                   min="1"
                   .value=${String(exerciseSets)}
-                  @input=${this.#updateSettingsField}
+                  @input=${this.#onInputChange}
                 />
               </label>
             </div>
 
+            <h3>Select Exercises By Category</h3>
+
+            <div class="tabs">
+              ${EXERCISE_CATEGORIES.map(
+                (category) => html`
+                  <button
+                    class="tab-item"
+                    data-category=${category}
+                    data-tab-active=${this._activeCategoryTab === category}
+                    @click=${this.#changeCategoryTab}
+                  >
+                    ${toSentenceCase(category)}
+                  </button>
+                `
+              )}
+            </div>
+
+            <div class="field-group select-group">
+              <label>
+                <select
+                  id="exerciseSelect"
+                  name="exercisesByCategory"
+                  multiple
+                  size=${activeCategoryExercises.length}
+                  @change=${this.#onSelectChange}
+                  key=${this._activeCategoryTab}
+                >
+                  ${activeCategoryExercises.map(
+                    (item) => html`
+                      <option
+                        data-selected=${selectedCategoryExercises.includes(
+                          item
+                        )}
+                        value=${item}
+                      >
+                        ${item}
+                      </option>
+                    `
+                  )}
+                </select>
+              </label>
+            </div>
+
             <div id="audioSection">
-              <h3>Audio</h3>
+              <h2>Audio</h2>
               <div class="tooltip tooltip-right">
                 <button
                   ?disabled=${audioVolume === AUDIO_VOLUME.MUTE}
@@ -399,13 +429,13 @@ export class App extends LitElement {
               </div>
             </div>
 
-            <h4>Sound</h4>
+            <h3>Sound</h3>
             <div class="field-group select-group">
               <label>
                 <select
                   size=${AUDIO_SOUNDS.length}
                   name="audioSound"
-                  @change=${this.#updateSettingsField}
+                  @change=${this.#onSelectChange}
                   .value=${audioSound}
                 >
                   ${AUDIO_SOUNDS.map(
@@ -419,13 +449,13 @@ export class App extends LitElement {
               </label>
             </div>
 
-            <h4>Volume</h4>
+            <h3>Volume</h3>
             <div class="field-group select-group">
               <label>
                 <select
                   size=${AUDIO_VOLUMES.length}
                   name="audioVolume"
-                  @change=${this.#updateSettingsField}
+                  @change=${this.#onSelectChange}
                   .value=${audioVolume}
                 >
                   ${AUDIO_VOLUMES.map(
@@ -448,7 +478,7 @@ export class App extends LitElement {
                   name="pomodoroMinutes"
                   min="1"
                   .value=${String(pomodoroMinutes)}
-                  @input=${this.#updateSettingsField}
+                  @input=${this.#onInputChange}
                 />
               </label>
 
@@ -459,7 +489,7 @@ export class App extends LitElement {
                   name="shortBreakMinutes"
                   min="1"
                   .value=${String(shortBreakMinutes)}
-                  @input=${this.#updateSettingsField}
+                  @input=${this.#onInputChange}
                 />
               </label>
 
@@ -470,7 +500,7 @@ export class App extends LitElement {
                   name="longBreakMinutes"
                   min="1"
                   .value=${String(longBreakMinutes)}
-                  @input=${this.#updateSettingsField}
+                  @input=${this.#onInputChange}
                 />
               </label>
             </div>
@@ -488,17 +518,14 @@ export class App extends LitElement {
     </div>`;
   }
 
-  #previewSound() {
-    const { audioSound, audioVolume } = this._settingsFormValues;
-    webAudioApiService.playSound(audioSound, audioVolume);
-  }
-
   /** @param {Event} event */
   #onSubmit(event) {
     event.preventDefault();
 
     for (const [key, value] of Object.entries(this._settingsFormValues)) {
-      if (!isNum(value) && !isBool(value)) {
+      if (key === 'exercisesByCategory' && isPlainObject(value)) {
+        continue;
+      } else if (!isNum(value) && !isBool(value)) {
         alert(CLIENT_ERROR_MESSAGE.INVALID_INPUTS);
         return;
       } else if (key !== 'audioVolume' && isNum(value) && Number(value) <= 0) {
@@ -522,7 +549,7 @@ export class App extends LitElement {
   /**
    * @param {InputEvent | Event} event
    */
-  #updateSettingsField(event) {
+  #onInputChange(event) {
     event.preventDefault();
     const { target } = event;
 
@@ -540,10 +567,37 @@ export class App extends LitElement {
           [name]: value,
         };
       }
-    } else if (target instanceof HTMLSelectElement) {
+    }
+  }
+
+  /** @param {Event} event */
+  #onSelectChange(event) {
+    event.preventDefault();
+    const { target } = event;
+
+    if (target instanceof HTMLSelectElement) {
       const { name, value } = target;
 
-      if (name === 'audioSound' || name === 'audioVolume') {
+      if (name === 'exercisesByCategory') {
+        const category = this._activeCategoryTab;
+        const exercisesInCategory =
+          EXERCISES_BY_CATEGORY_MAP.get(category) ?? [];
+        const { selectedOptions } = target;
+
+        const validSelections = Array.from(selectedOptions)
+          .map((option) => option.value)
+          .filter((option) => exercisesInCategory.includes(option));
+
+        if (validSelections.length) {
+          this._settingsFormValues = {
+            ...this._settingsFormValues,
+            [name]: {
+              ...this._settingsFormValues.exercisesByCategory,
+              [category]: validSelections,
+            },
+          };
+        }
+      } else if (name === 'audioSound' || name === 'audioVolume') {
         this._settingsFormValues = {
           ...this._settingsFormValues,
           [name]: Number(value),
@@ -552,22 +606,22 @@ export class App extends LitElement {
     }
   }
 
-  #updateCategorySelection(event) {
-    const options = event.target.options;
-    const selected = [];
+  /** @param {Event} event */
+  #changeCategoryTab(event) {
+    event.preventDefault();
+    const { target } = event;
 
-    for (const option of options) {
-      if (option.selected) {
-        selected.push(option.value);
-      }
+    if (target instanceof HTMLButtonElement) {
+      const category = /** @type {import("index.d.js").ExerciseCategory} */ (
+        target.dataset.category
+      );
+      this._activeCategoryTab = category;
     }
+  }
 
-    this._settingsFormValues = {
-      ...this._settingsFormValues,
-      selectedExerciseCategories: selected,
-    };
-  async #initAudio() {
-    await webAudioApiService.init();
+  #previewSound() {
+    const { audioSound, audioVolume } = this._settingsFormValues;
+    webAudioApiService.playSound(audioSound, audioVolume);
   }
 
   #closeEnableNotificationsModal() {
@@ -586,12 +640,17 @@ export class App extends LitElement {
     this._hasUserVisited = true;
   }
 
+  async #initAudio() {
+    await webAudioApiService.init();
+  }
+
   static styles = [
     buttonStyles,
     captionTextStyles,
     modalStyles,
     linkStyles,
     tooltipStyles,
+    tabStyles,
     css`
       :host {
         display: flex;
@@ -690,6 +749,14 @@ export class App extends LitElement {
         width: 100%;
       }
 
+      #exerciseSelect option[data-selected='true'] {
+        background-color: #464646;
+      }
+
+      #exerciseSelect option[data-selected='false'] {
+        background-color: #2b2a33;
+      }
+
       #audioSection {
         display: flex;
         gap: 0.5rem;
@@ -700,7 +767,7 @@ export class App extends LitElement {
         border-radius: 50%;
         border: 1px;
         font-size: 0.7rem;
-        padding: 0.3rem 0.5rem;
+        padding: 0.46rem 0.65rem;
       }
 
       #previewSound:hover {
