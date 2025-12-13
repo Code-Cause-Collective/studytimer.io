@@ -10,6 +10,8 @@
 
 /** @typedef {[ExerciseCategory, readonly string[]]} ExerciseEntries */
 
+/** @typedef {Partial<Record<ExerciseCategory, string[]>>} ExerciseByCategory */
+
 /**
  * @typedef {Record<string, string>} Exercise
  * @property {string} category
@@ -21,10 +23,10 @@
  * @property {boolean} showTimerInTitle
  * @property {boolean} showMotivationalQuote
  * @property {boolean} enableNotifications
- * @property {boolean} enableExerciseDisplay
+ * @property {boolean} showExercises
+ * @property {ExerciseByCategory} exercisesByCategory
  * @property {number} exerciseReps
  * @property {number} exerciseSets
- * @property {number} exercisesCount
  * @property {number} pomodoroMinutes
  * @property {number} shortBreakMinutes
  * @property {number} longBreakMinutes

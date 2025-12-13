@@ -44,6 +44,115 @@ const CLIENT_ERROR_MESSAGE = Object.freeze({
   PRELOAD_AUDIO_FAILED: 'Failed to load audio/sound.',
 });
 
+/** @type {Readonly<Record<string, import("../index.d.js").ExerciseCategory>>} */
+const EXERCISE_CATEGORY = Object.freeze({
+  UPPER_BODY: 'upperBody',
+  LOWER_BODY: 'lowerBody',
+  CORE: 'core',
+  CARDIO: 'cardio',
+  MOBILITY: 'mobility',
+  BALANCE: 'balance',
+  FULL_BODY: 'fullBody',
+  STATIC_STRENGTH: 'staticStrength',
+  YOGA: 'yoga',
+});
+
+/** @type {readonly import("../index.d.js").ExerciseEntries[]} */
+const EXERCISES_ENTRIES = Object.freeze([
+  [
+    EXERCISE_CATEGORY.UPPER_BODY,
+    Object.freeze([
+      'Push-ups',
+      'Wide push-ups',
+      'Diamond push-ups',
+      'Decline push-ups',
+      'Incline push-ups',
+      'Shoulder taps',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.LOWER_BODY,
+    Object.freeze([
+      'Squats',
+      'Lunges',
+      'Reverse lunges',
+      'Side lunges',
+      'Curtsy lunges',
+      'Bulgarian split squat',
+      'Calf raises',
+      'Wall sit',
+      'Hip thrusts',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.CORE,
+    Object.freeze([
+      'Sit-ups',
+      'Crunches',
+      'Bicycle crunches',
+      'Leg raises',
+      'Flutter kicks',
+      'Scissor kicks',
+      'Russian twists',
+      'Plank',
+      'Side plank',
+      'Mountain climbers',
+      'V-ups',
+      'Supermans',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.CARDIO,
+    Object.freeze([
+      'Jumping jacks',
+      'Burpees',
+      'Standing knee drives',
+      'Invisible jump rope',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.MOBILITY,
+    Object.freeze([
+      'Hip flexor stretch',
+      'Hamstring stretch',
+      'Quad stretch',
+      'Ankle circles',
+      'Arm circles',
+      'Torso twists',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.BALANCE,
+    Object.freeze([
+      'Single-leg balance hold',
+      'Single-leg toe touch',
+      'Heel-to-toe walk',
+      'Single-leg calf raise',
+    ]),
+  ],
+  [
+    EXERCISE_CATEGORY.FULL_BODY,
+    Object.freeze(['Burpees', 'Mountain climbers', 'Jumping jacks']),
+  ],
+  [
+    EXERCISE_CATEGORY.STATIC_STRENGTH,
+    Object.freeze(['Static squat hold', 'Static plank hold']),
+  ],
+  [
+    EXERCISE_CATEGORY.YOGA,
+    Object.freeze([
+      'Warrior pose',
+      'Chair pose',
+      'Tree pose',
+      'Boat pose',
+      'Bridge pose',
+      'Crescent lunge hold',
+    ]),
+  ],
+]);
+
+const EXERCISES_BY_CATEGORY_MAP = Object.freeze(new Map(EXERCISES_ENTRIES));
+
 const POMODORO_MODE = Object.freeze({
   POMODORO: 'pomodoroMinutes',
   SHORT_BREAK: 'shortBreakMinutes',
@@ -83,6 +192,9 @@ export {
   AUDIO_SOUND,
   AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
+  EXERCISES_BY_CATEGORY_MAP,
+  EXERCISE_CATEGORY,
+  EXERCISES_ENTRIES,
   DEFAULT_POMODORO_TIMES,
   POMODORO_MODE,
   POMODORO_TIMER_ACTION,

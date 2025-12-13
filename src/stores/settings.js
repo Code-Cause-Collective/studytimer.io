@@ -4,16 +4,19 @@ import {
   AUDIO_VOLUME,
   CLIENT_ERROR_MESSAGE,
   DEFAULT_POMODORO_TIMES,
+  EXERCISES_BY_CATEGORY_MAP,
   STORAGE_KEY_NAMESPACE,
 } from '../utils/constants.js';
-import { isBool, isNum } from '../utils/helpers.js';
+import { isBool, isNum, isPlainObject } from '../utils/helpers.js';
+
+/** @typedef {boolean | number | import('index.d.js').ExerciseByCategory} SettingsStorageValue */
 
 /** @type {import('index.d.js').Settings} */
 export const DEFAULT_SETTINGS = Object.freeze({
-  enableExerciseDisplay: true,
+  showExercises: true,
   exerciseReps: 5,
   exerciseSets: 1,
-  exercisesCount: 1,
+  exercisesByCategory: {},
   enableNotifications: false,
   showTimerInTitle: false,
   showMotivationalQuote: true,
@@ -40,33 +43,58 @@ class SettingsStore extends EventTarget {
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of settingsMap.entries()) {
-      const storedValue = /** @type {boolean | number | null} */ (
-        this.#settingsStorage.get(key)
-      );
+      const storedValue = this.#settingsStorage.get(key);
 
-      let value = /** @type {boolean | number} */ (
+      let value = /** @type {SettingsStorageValue} */ (
         storedValue === null
           ? defaultValue
           : (isBool(defaultValue) && isBool(storedValue)) ||
-              (isNum(defaultValue) && isNum(storedValue))
+              (isNum(defaultValue) && isNum(storedValue)) ||
+              (isPlainObject(defaultValue) && isPlainObject(storedValue))
             ? storedValue
             : defaultValue
       );
 
-      if (key === 'audioSound' && typeof value === 'number') {
+      // Additional checks for specific settings
+      if (key === 'audioSound') {
         const matchingAudioSound = Object.values(AUDIO_SOUND).find(
           ({ ID }) => ID === value
         );
         if (matchingAudioSound === undefined) {
           value = defaultValue;
         }
-      } else if (key === 'audioVolume' && typeof value === 'number') {
+      } else if (key === 'audioVolume') {
         const matchingAudioVolume = Object.values(AUDIO_VOLUME).find(
           (volume) => volume === value
         );
         if (matchingAudioVolume === undefined) {
           value = defaultValue;
         }
+      } else if (key === 'exercises' && Object.keys(value).length > 0) {
+        const exercisesByCategoryValue =
+          /** @type {import('index.d.js').ExerciseByCategory} */ (value);
+
+        value = Object.fromEntries(
+          Object.entries(exercisesByCategoryValue)
+            .filter(
+              ([category, exercises]) =>
+                EXERCISES_BY_CATEGORY_MAP.has(
+                  /** @type {import('index.d.js').ExerciseCategory} */ (
+                    category
+                  )
+                ) && Array.isArray(exercises)
+            )
+            .map(([category, exercises]) => [
+              category,
+              exercises.filter((exercise) =>
+                EXERCISES_BY_CATEGORY_MAP.get(
+                  /** @type {import('index.d.js').ExerciseCategory} */ (
+                    category
+                  )
+                )?.includes(exercise)
+              ),
+            ])
+        );
       }
 
       settingsMap.set(key, value);
@@ -89,11 +117,11 @@ class SettingsStore extends EventTarget {
     const settingsMap = new Map(Object.entries(this.#settings));
 
     for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
-      const val = /** @type {boolean | number} */ (
-        valueMap.has(key) ? valueMap.get(key) : defaultValue
-      );
+      const val = valueMap.has(key) ? valueMap.get(key) : defaultValue;
 
-      const newValue = isBool(val) || isNum(val) ? val : defaultValue;
+      const newValue = /** @type {SettingsStorageValue} */ (
+        isBool(val) || isNum(val) || isPlainObject(val) ? val : defaultValue
+      );
 
       settingsMap.set(key, newValue);
       this.#settingsStorage.set(key, newValue);
