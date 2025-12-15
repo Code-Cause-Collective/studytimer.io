@@ -27,7 +27,7 @@ jobs:
         id: extract-release-notes
         uses: ffurrer2/extract-release-notes@v3
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         id: cpr
         with:
           branch: release
