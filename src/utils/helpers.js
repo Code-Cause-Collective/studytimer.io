@@ -24,6 +24,18 @@ function isNum(input) {
 }
 
 /**
+ * @param {unknown} input
+ * @returns  {boolean}
+ */
+function isPlainObject(input) {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    Object.prototype.toString.call(input) === '[object Object]'
+  );
+}
+
+/**
  *  @param {unknown} input
  *  @returns {string}
  */
@@ -58,4 +70,4 @@ function toTitleCase(input) {
     .join(' ');
 }
 
-export { isBool, isNum, toTitleCase, toSentenceCase };
+export { isBool, isNum, isPlainObject, toTitleCase, toSentenceCase };
