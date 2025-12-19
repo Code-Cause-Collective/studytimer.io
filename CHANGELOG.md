@@ -1,5 +1,11 @@
 # studytimer.io
 
+## 0.2.1
+
+### Patch Changes
+
+- 58f8259: Revert the exercises selection in the settings form from a multi-select dropdown to checkboxes to allow users to select multiple exercises per category more easily.
+
 ## 0.2.0
 
 ### Minor Changes
