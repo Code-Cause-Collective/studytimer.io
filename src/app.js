@@ -133,6 +133,17 @@ export class App extends LitElement {
     }
   }
 
+  get #activeCategoryExercises() {
+    return EXERCISES_BY_CATEGORY_MAP.get(this._activeCategoryTab) ?? [];
+  }
+
+  get #selectedCategoryExercises() {
+    return (
+      this._settingsFormValues.exercisesByCategory[this._activeCategoryTab] ??
+      []
+    );
+  }
+
   render() {
     return html`${!this._isPageNotFound
         ? html`<app-top-bar></app-top-bar>`
@@ -279,7 +290,6 @@ export class App extends LitElement {
       showMotivationalQuote,
       enableNotifications,
       showExercises,
-      exercisesByCategory,
       exerciseReps,
       exerciseSets,
       pomodoroMinutes,
@@ -288,14 +298,6 @@ export class App extends LitElement {
       audioSound,
       audioVolume,
     } = this._settingsFormValues;
-    const activeCategoryExercises =
-      EXERCISES_BY_CATEGORY_MAP.get(
-        /** @type {import("index.d.js").ExerciseCategory} */ (
-          this._activeCategoryTab
-        )
-      ) ?? [];
-    const selectedCategoryExercises =
-      exercisesByCategory[this._activeCategoryTab] ?? [];
 
     return html`<div
       class="modal"
@@ -392,30 +394,21 @@ export class App extends LitElement {
               )}
             </div>
 
-            <div class="field-group select-group">
-              <label>
-                <select
-                  id="exerciseSelect"
-                  name=${SETTINGS_KEY.exercisesByCategory}
-                  multiple
-                  size=${activeCategoryExercises.length}
-                  @change=${this.#onSelectChange}
-                  key=${this._activeCategoryTab}
-                >
-                  ${activeCategoryExercises.map(
-                    (item) => html`
-                      <option
-                        data-selected=${selectedCategoryExercises.includes(
-                          item
-                        )}
-                        value=${item}
-                      >
-                        ${item}
-                      </option>
-                    `
-                  )}
-                </select>
-              </label>
+            <div class="checkbox-group">
+              ${this.#activeCategoryExercises.map(
+                (item) => html`
+                  <label>
+                    <input
+                      type="checkbox"
+                      name=${SETTINGS_KEY.exercisesByCategory}
+                      .checked=${this.#selectedCategoryExercises.includes(item)}
+                      value=${item}
+                      @change=${this.#onInputChange}
+                    />
+                    ${item}
+                  </label>
+                `
+              )}
             </div>
 
             <div id="audioSection">
@@ -565,10 +558,29 @@ export class App extends LitElement {
       const { name, checked, value, type } = target;
 
       if (type === 'checkbox') {
-        this._settingsFormValues = {
-          ...this._settingsFormValues,
-          [name]: isBool(checked) ? checked : false,
-        };
+        if (name === SETTINGS_KEY.exercisesByCategory) {
+          const category = this._activeCategoryTab;
+          this._settingsFormValues = {
+            ...this._settingsFormValues,
+            [name]: {
+              ...this._settingsFormValues.exercisesByCategory,
+              [category]: checked
+                ? [
+                    ...new Set([...this.#selectedCategoryExercises, value]),
+                  ].filter((item) =>
+                    this.#activeCategoryExercises.includes(item)
+                  )
+                : this.#selectedCategoryExercises.filter(
+                    (item) => item !== value
+                  ),
+            },
+          };
+        } else {
+          this._settingsFormValues = {
+            ...this._settingsFormValues,
+            [name]: isBool(checked) ? checked : false,
+          };
+        }
       } else if (type === 'number') {
         this._settingsFormValues = {
           ...this._settingsFormValues,
@@ -586,26 +598,7 @@ export class App extends LitElement {
     if (target instanceof HTMLSelectElement) {
       const { name, value } = target;
 
-      if (name === SETTINGS_KEY.exercisesByCategory) {
-        const category = this._activeCategoryTab;
-        const exercisesInCategory =
-          EXERCISES_BY_CATEGORY_MAP.get(category) ?? [];
-        const { selectedOptions } = target;
-
-        const validSelections = Array.from(selectedOptions)
-          .map((option) => option.value)
-          .filter((option) => exercisesInCategory.includes(option));
-
-        if (validSelections.length) {
-          this._settingsFormValues = {
-            ...this._settingsFormValues,
-            [name]: {
-              ...this._settingsFormValues.exercisesByCategory,
-              [category]: validSelections,
-            },
-          };
-        }
-      } else if (
+      if (
         name === SETTINGS_KEY.audioSound ||
         name === SETTINGS_KEY.audioVolume
       ) {
@@ -758,14 +751,6 @@ export class App extends LitElement {
       #settingsForm .field-group select {
         cursor: pointer;
         width: 100%;
-      }
-
-      #exerciseSelect option[data-selected='true'] {
-        background-color: #464646;
-      }
-
-      #exerciseSelect option[data-selected='false'] {
-        background-color: #2b2a33;
       }
 
       #audioSection {
