@@ -1,5 +1,6 @@
 import LocalStorageService from '../services/local-storage.service.js';
 import {
+  BROWSER,
   CLIENT_ERROR_MESSAGE,
   STORAGE_KEY_NAMESPACE,
 } from '../utils/constants.js';
@@ -9,7 +10,7 @@ class AppStore {
   /** @type {string} */
   #visitedStorageKey = 'visited';
   /** @type {import("../index.d.js").UserAgent} */
-  #userAgent = 'unknown';
+  #userAgent = BROWSER.UNKNOWN;
   /** @type {boolean} */
   #hasUserVisited = true;
 
@@ -22,22 +23,7 @@ class AppStore {
     this.#hasUserVisited =
       hasUserVisitedValue !== null ? Boolean(hasUserVisitedValue) : false;
 
-    const userAgent = detectUserAgent();
-    if (
-      [
-        'chrome',
-        'chromium',
-        'edge',
-        'firefox',
-        'opera',
-        'safari',
-        'seamonkey',
-      ].includes(userAgent)
-    ) {
-      this.#userAgent = userAgent;
-    } else {
-      this.#userAgent = 'unknown';
-    }
+    this.#userAgent = detectUserAgent();
   }
 
   get visitedStorageKey() {

@@ -28,6 +28,18 @@ const AUDIO_VOLUME = Object.freeze({
   ONE_HUNDRED_PERCENT: 100,
 });
 
+/** @type {Readonly<Record<string, import("../index.d.js").UserAgent>>} */
+const BROWSER = Object.freeze({
+  CHROME: 'chrome',
+  CHROMIUM: 'chromium',
+  EDGE: 'edge',
+  FIREFOX: 'firefox',
+  OPERA: 'opera',
+  SAFARI: 'safari',
+  SEAMONKEY: 'seamonkey',
+  UNKNOWN: 'unknown',
+});
+
 const CLIENT_ERROR_MESSAGE = Object.freeze({
   STORAGE_INVALID: 'Storage invalid.',
   STORAGE_NAMESPACE_INVALID: 'Storage namespace invalid.',
@@ -191,6 +203,7 @@ export {
   APP_EVENT,
   AUDIO_SOUND,
   AUDIO_VOLUME,
+  BROWSER,
   CLIENT_ERROR_MESSAGE,
   EXERCISES_BY_CATEGORY_MAP,
   EXERCISE_CATEGORY,
