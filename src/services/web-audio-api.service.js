@@ -82,9 +82,9 @@ class WebAudioApiService {
     const audioSounds = Object.values(AUDIO_SOUND);
     const matchingAudioSound = audioSounds.find(({ ID }) => ID === id);
 
-    if (!matchingAudioSound) {
+    if (matchingAudioSound === undefined) {
       // Fallback to default if sound not found
-      return this.playSound(audioSounds[0].ID, volume);
+      return this.playSound(DEFAULT_SETTINGS.audioSound, volume);
     }
 
     try {
