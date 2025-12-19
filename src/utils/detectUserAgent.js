@@ -1,34 +1,39 @@
+import { BROWSER } from './constants.js';
+
 /** @returns {import("../index.d.js").UserAgent} */
 function detectUserAgent() {
   const userAgent = window.navigator.userAgent;
   switch (true) {
     case userAgent.includes('Firefox/') && !userAgent.includes('Seamonkey/'):
-      return 'firefox';
+      return BROWSER.FIREFOX;
 
     case userAgent.includes('Seamonkey/'):
-      return 'seamonkey';
+      return BROWSER.SEAMONKEY;
 
     case userAgent.includes('Chrome/') &&
       !userAgent.includes('Chromium/') &&
       !userAgent.includes('Edg/'):
-      return 'chrome';
+      return BROWSER.CHROME;
 
     case userAgent.includes('Chromium/'):
-      return 'chromium';
+      return BROWSER.CHROMIUM;
+
+    case userAgent.includes('Edg/'):
+      return BROWSER.EDGE;
 
     case userAgent.includes('Safari/') &&
       !userAgent.includes('Chrome/') &&
       !userAgent.includes('Chromium/'):
-      return 'safari';
+      return BROWSER.SAFARI;
 
     case userAgent.includes('OPR/'):
-      return 'opera';
+      return BROWSER.OPERA;
 
     case userAgent.includes('Opera/'):
-      return 'opera';
+      return BROWSER.OPERA;
 
     default:
-      return 'unknown';
+      return BROWSER.UNKNOWN;
   }
 }
 
