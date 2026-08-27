@@ -12,9 +12,11 @@ export class AppTopBar extends LitElement {
     return html` <div id="topBar">
       <div class="content">
         <div class="left">
-          ${import.meta.env.MODE === 'development'
-            ? html`<span>[DEV]</span>`
-            : nothing}
+          ${
+            import.meta.env.MODE === 'development'
+              ? html`<span>[DEV]</span>`
+              : nothing
+          }
           <button class="info-button">i</button>
           Powered by
           <a href="https://codecause.dev/" target="_blank"><b>Code Cause</b></a>

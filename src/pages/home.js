@@ -247,48 +247,52 @@ export class HomePage extends LitElement {
         </div>
       </section>
 
-      ${showMotivationalQuote
-        ? html`<section id="motivationalQuote">
-            <h2 id="quote">${this._motivationalQuote}</h2>
-          </section>`
-        : nothing}
-      ${this._showExercises && showExercises
-        ? html`<section id="exercises">
-            <div class="exercise-container">
-              <h2>Exercises</h2>
-              <div class="table-wrapper">
-                <table id="exerciseTable">
-                  <thead>
-                    <tr>
-                      <th>Type</th>
-                      <th>Name</th>
-                      <th>Rep(s)</th>
-                      <th>Set(s)</th>
-                      <th>Done</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${this._exercises?.map(
-                      (exercise, index) => html`
-                        <tr data-row="${index + 1}">
-                          <td data-label="type">
-                            ${toSentenceCase(exercise.category)}
-                          </td>
-                          <td data-label="name">${exercise.name}</td>
-                          <td data-label="reps">${String(exerciseReps)}</td>
-                          <td data-label="sets">${String(exerciseSets)}</td>
-                          <td data-label="done">
-                            <input type="checkbox" .checked=${false} />
-                          </td>
-                        </tr>
-                      `
-                    )}
-                  </tbody>
-                </table>
+      ${
+        showMotivationalQuote
+          ? html`<section id="motivationalQuote">
+              <h2 id="quote">${this._motivationalQuote}</h2>
+            </section>`
+          : nothing
+      }
+      ${
+        this._showExercises && showExercises
+          ? html`<section id="exercises">
+              <div class="exercise-container">
+                <h2>Exercises</h2>
+                <div class="table-wrapper">
+                  <table id="exerciseTable">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Rep(s)</th>
+                        <th>Set(s)</th>
+                        <th>Done</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${this._exercises?.map(
+                        (exercise, index) => html`
+                          <tr data-row="${index + 1}">
+                            <td data-label="type">
+                              ${toSentenceCase(exercise.category)}
+                            </td>
+                            <td data-label="name">${exercise.name}</td>
+                            <td data-label="reps">${String(exerciseReps)}</td>
+                            <td data-label="sets">${String(exerciseSets)}</td>
+                            <td data-label="done">
+                              <input type="checkbox" .checked=${false} />
+                            </td>
+                          </tr>
+                        `
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </section>`
-        : nothing}
+            </section>`
+          : nothing
+      }
     </div>`;
   }
 
