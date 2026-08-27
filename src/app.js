@@ -145,16 +145,18 @@ export class App extends LitElement {
   }
 
   render() {
-    return html`${!this._isPageNotFound
-        ? html`<app-top-bar></app-top-bar>`
-        : nothing}
+    return html`${
+        !this._isPageNotFound ? html`<app-top-bar></app-top-bar>` : nothing
+      }
       <main>
-        ${!this._isPageNotFound
-          ? html`<app-header
-              @faq-modal=${this.#onFaqNavLinkClick}
-              @settings-modal=${this.#onSettingsNavLinkClick}
-            ></app-header>`
-          : nothing}
+        ${
+          !this._isPageNotFound
+            ? html`<app-header
+                @faq-modal=${this.#onFaqNavLinkClick}
+                @settings-modal=${this.#onSettingsNavLinkClick}
+              ></app-header>`
+            : nothing
+        }
         <div id="outlet">${this.#router.outlet()}</div>
       </main>
       ${!this._hasUserVisited ? this.#renderFirstVisitPopover() : nothing}
